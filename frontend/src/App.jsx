@@ -1,16 +1,16 @@
-import { useState } from 'react'
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import Header from './components/Header.jsx'; // 1. Import the Header component
 
-
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
   return (
     <>
-      <div>
-        <p>Hello cvbngftk thala</p>
-      </div>
+      <Header /> {/* 2. Replace the old header with this component */}
+      <main>
+        <Outlet />
+      </main>
     </>
-  )
-}
+  );
+};
 
-export default App
+export default App;
