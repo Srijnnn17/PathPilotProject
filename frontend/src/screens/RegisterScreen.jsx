@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRegisterMutation } from '../slices/usersApiSlice';
 import { setCredentials } from '../slices/authSlice';
+import { toast } from 'react-toastify';
+import FormContainer from '../components/FormContainer';
+import Loader from '../components/Loader.jsx';
 
 const RegisterScreen = () => {
   const [name, setName] = useState('');
@@ -13,9 +16,8 @@ const RegisterScreen = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [register, { isLoading }] = useRegisterMutation();
-
   const { userInfo } = useSelector((state) => state.auth);
+  const [register, { isLoading }] = useRegisterMutation();
 
   useEffect(() => {
     if (userInfo) {
@@ -25,72 +27,94 @@ const RegisterScreen = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      toast.error('Passwords do not match');
     } else {
       try {
         const res = await register({ name, email, password }).unwrap();
         dispatch(setCredentials({ ...res }));
         navigate('/');
       } catch (err) {
-        alert(err?.data?.message || err.error);
+        toast.error(err?.data?.message || err.error);
       }
     }
   };
 
   return (
-    <div>
-      <h1>Sign Up</h1>
-      <form onSubmit={submitHandler}>
-        {/* Form Inputs remain the same */}
+    <FormContainer>
+      <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
+        Create Your Account
+      </h1>
+
+      <form onSubmit={submitHandler} className="space-y-4">
         <div>
-          <label>Name</label>
+          <label className="block text-sm font-medium text-gray-700">Name</label>
           <input
             type="text"
-            placeholder="Enter name"
+            placeholder="Enter your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
           />
         </div>
+
         <div>
-          <label>Email Address</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Email Address
+          </label>
           <input
             type="email"
-            placeholder="Enter email"
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
           />
         </div>
+
         <div>
-          <label>Password</label>
+          <label className="block text-sm font-medium text-gray-700">Password</label>
           <input
             type="password"
-            placeholder="Enter password"
+            placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
           />
         </div>
+
         <div>
-          <label>Confirm Password</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Confirm Password
+          </label>
           <input
             type="password"
-            placeholder="Confirm password"
+            placeholder="Confirm your password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
           />
         </div>
-        
-        {isLoading && <h4>Loading...</h4>}
 
-        <button type="submit">Register</button>
+        {isLoading && <Loader />}
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-75 disabled:cursor-not-allowed transition-all duration-300"
+        >
+          Sign Up
+        </button>
       </form>
-      <div>
-        <p>
-          Already have an account? <Link to="/login">Login</Link>
+
+      <div className="mt-6 text-center">
+        <p className="text-sm text-gray-600">
+          Already a member?{' '}
+          <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500 hover:underline">
+            Sign In
+          </Link>
         </p>
       </div>
-    </div>
+    </FormContainer>
   );
 };
 

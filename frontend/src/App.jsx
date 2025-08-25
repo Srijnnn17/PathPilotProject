@@ -1,11 +1,14 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Header from './components/Header.jsx'; // 1. Import the Header component
+import Header from './components/Header.jsx';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => {
   return (
     <>
-      <Header /> {/* 2. Replace the old header with this component */}
+      <Header />
+      <ToastContainer />
       <main>
         <Outlet />
       </main>
