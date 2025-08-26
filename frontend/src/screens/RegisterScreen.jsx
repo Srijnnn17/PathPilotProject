@@ -1,120 +1,163 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { useRegisterMutation } from '../slices/usersApiSlice';
-import { setCredentials } from '../slices/authSlice';
-import { toast } from 'react-toastify';
-import FormContainer from '../components/FormContainer';
-import Loader from '../components/Loader.jsx';
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate, Link } from "react-router-dom";
+import { useRegisterMutation } from "../slices/usersApiSlice";
+import { setCredentials } from "../slices/authSlice";
+import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 
 const RegisterScreen = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-
-  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const { userInfo } = useSelector((state) => state.auth);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
   const [register, { isLoading }] = useRegisterMutation();
 
-  useEffect(() => {
-    if (userInfo) {
-      navigate('/');
-    }
-  }, [navigate, userInfo]);
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-  const submitHandler = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
-    } else {
-      try {
-        const res = await register({ name, email, password }).unwrap();
-        dispatch(setCredentials({ ...res }));
-        navigate('/');
-      } catch (err) {
-        toast.error(err?.data?.message || err.error);
-      }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    try {
+      const res = await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      }).unwrap();
+
+      dispatch(setCredentials({ ...res }));
+      navigate("/");
+    } catch (err) {
+      toast.error(err?.data?.message || err.error);
     }
   };
 
   return (
-    <FormContainer>
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
-        Create Your Account
-      </h1>
+    <div className="relative min-h-screen flex items-start justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800 px-4 pt-24">
+      {/* Background accents */}
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-500/40 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-[-120px] right-[-120px] w-[32rem] h-[32rem] bg-indigo-500/40 rounded-full blur-3xl animate-pulse delay-700" />
 
-      <form onSubmit={submitHandler} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Name</label>
+      {/* Glassmorphic Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative backdrop-blur-xl bg-white/10 shadow-2xl rounded-2xl px-8 md:px-12 py-12 w-full max-w-md text-center border-t border-white/20 max-h-[calc(100vh-6rem)] overflow-hidden"
+      >
+        {/* Heading */}
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="text-4xl md:text-5xl font-extrabold text-white drop-shadow-lg"
+        >
+          Create{" "}
+          <span className="bg-gradient-to-r from-cyan-300 to-indigo-400 bg-clip-text text-transparent">
+            Account
+          </span>
+        </motion.h2>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="mt-3 text-gray-200 text-lg"
+        >
+          Join PathPilot today 🚀
+        </motion.p>
+
+        {/* Form */}
+        <motion.form
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          onSubmit={handleSubmit}
+          className="mt-8 flex flex-col space-y-4"
+        >
           <input
             type="text"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+            name="name"
+            placeholder="Your Name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            className="px-4 py-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-gray-300 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200"
           />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Email Address
-          </label>
           <input
             type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+            name="email"
+            placeholder="Email Address"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            className="px-4 py-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-gray-300 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200"
           />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Password</label>
           <input
             type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+            name="password"
+            placeholder="Create Password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            className="px-4 py-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-gray-300 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200"
           />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Confirm Password
-          </label>
           <input
             type="password"
-            placeholder="Confirm your password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+            name="confirmPassword"
+            placeholder="Confirm Password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+            className="px-4 py-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-gray-300 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200"
           />
-        </div>
 
-        {isLoading && <Loader />}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="mt-4 bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 
+                       text-white font-bold py-3 px-10 rounded-md shadow-lg transition-transform transform hover:scale-105 
+                       focus:outline-none focus:ring-4 focus:ring-indigo-300 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            Register
+          </button>
+        </motion.form>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-75 disabled:cursor-not-allowed transition-all duration-300"
+        {/* Login Link */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="mt-6 text-gray-300"
         >
-          Sign Up
-        </button>
-      </form>
-
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
-          Already a member?{' '}
-          <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500 hover:underline">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="text-cyan-400 font-semibold hover:underline"
+          >
             Sign In
           </Link>
-        </p>
-      </div>
-    </FormContainer>
+        </motion.p>
+      </motion.div>
+    </div>
   );
 };
 

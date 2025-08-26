@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { useLoginMutation } from '../slices/usersApiSlice';
-import { setCredentials } from '../slices/authSlice';
-import { toast } from 'react-toastify';
-import FormContainer from '../components/FormContainer.jsx';
-import Loader from '../components/Loader.jsx';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { useLoginMutation } from "../slices/usersApiSlice";
+import { setCredentials } from "../slices/authSlice";
+import { motion } from "framer-motion";
+import { toast } from "react-toastify";
+import Loader from "../components/Loader.jsx";
 
 const LoginScreen = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -19,7 +19,7 @@ const LoginScreen = () => {
 
   useEffect(() => {
     if (userInfo) {
-      navigate('/');
+      navigate("/");
     }
   }, [navigate, userInfo]);
 
@@ -28,63 +28,103 @@ const LoginScreen = () => {
     try {
       const res = await login({ email, password }).unwrap();
       dispatch(setCredentials({ ...res }));
-      navigate('/');
+      navigate("/");
     } catch (err) {
       toast.error(err?.data?.message || err.error);
     }
   };
 
   return (
-    <FormContainer>
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
-        Welcome Back
-      </h1>
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800 px-4">
+      {/* Background accents */}
+      <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-500/40 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-[-120px] right-[-120px] w-[32rem] h-[32rem] bg-indigo-500/40 rounded-full blur-3xl animate-pulse delay-700" />
 
-      <form onSubmit={submitHandler} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Email Address
-          </label>
+      {/* Glassmorphic Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative backdrop-blur-xl bg-white/10 shadow-2xl rounded-2xl px-8 md:px-12 py-12 w-full max-w-md text-center border-t border-white/20"
+      >
+        {/* Heading */}
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="text-4xl md:text-5xl font-extrabold text-white drop-shadow-lg"
+        >
+          Welcome Back
+        </motion.h2>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="mt-3 text-gray-200 text-lg leading-relaxed"
+        >
+          Sign in to continue <br />
+          your PathPilot journey 🚀
+        </motion.p>
+
+        {/* Form */}
+        <motion.form
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          onSubmit={submitHandler}
+          className="mt-8 flex flex-col space-y-4"
+        >
           <input
             type="email"
-            placeholder="you@example.com"
+            placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+            required
+            className="px-4 py-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-gray-300 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200"
           />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Password</label>
           <input
             type="password"
-            placeholder="Enter your password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+            required
+            className="px-4 py-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-gray-300 
+                       focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200"
           />
-        </div>
 
-        {isLoading && <Loader />}
+          {isLoading && <Loader />}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-75 disabled:cursor-not-allowed transition-all duration-300"
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="mt-4 bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 
+                       text-white font-bold py-3 px-10 rounded-md shadow-lg transition-transform transform hover:scale-105 
+                       focus:outline-none focus:ring-4 focus:ring-indigo-300 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            Sign In
+          </button>
+        </motion.form>
+
+        {/* Register Link */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="mt-6 text-gray-300"
         >
-          Sign In
-        </button>
-      </form>
-
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
-          New to PathPilot?{' '}
-          <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500 hover:underline">
+          New to PathPilot?{" "}
+          <Link
+            to="/register"
+            className="text-cyan-400 font-semibold hover:underline"
+          >
             Create an account
           </Link>
-        </p>
-      </div>
-    </FormContainer>
+        </motion.p>
+      </motion.div>
+    </div>
   );
 };
 
