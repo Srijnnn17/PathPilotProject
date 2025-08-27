@@ -16,40 +16,40 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800/90 backdrop-blur-xl border-b border-white/10 shadow-lg">
-      <nav className="container mx-auto flex items-center justify-between px-6 py-3 md:py-4 h-20">
+    <header className="sticky top-0 z-50 bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800/90 backdrop-blur-xl border-b border-white/10 shadow-2xl">
+      <nav className="w-full flex items-center justify-between px-4 md:px-10 py-3 md:py-4 h-20">
         {/* left: logo + main nav */}
         <div className="flex items-center space-x-6">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 group">
             <span
               aria-hidden
-              className="inline-flex w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-400 to-indigo-400 shadow-md transform -translate-y-0.5"
+              className="inline-flex w-11 h-11 rounded-full bg-gradient-to-tr from-cyan-400 to-indigo-500 shadow-lg ring-2 ring-cyan-400 group-hover:scale-110 group-hover:ring-indigo-400 transition-all duration-300"
             />
-            <span className="text-2xl md:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-indigo-400">
+            <span className="text-3xl md:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-lg group-hover:drop-shadow-2xl transition-all duration-300">
               PathPilot
             </span>
           </Link>
 
           {/* desktop nav */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-6 ml-8">
             <Link
               to="/topics"
-              className="text-white font-medium px-3 py-2 rounded-md hover:bg-white/10 hover:text-cyan-300 transition-colors duration-200"
+              className="relative text-white font-semibold px-4 py-2 rounded-md hover:text-cyan-300 transition-colors duration-200 after:content-[''] after:block after:h-0.5 after:bg-gradient-to-r after:from-cyan-400 after:to-indigo-400 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 after:origin-left"
             >
               Topics
             </Link>
-            {/* add more links here if needed */}
           </div>
         </div>
 
         {/* right: actions */}
-        <div className="hidden md:flex items-center space-x-3">
+        <div className="hidden md:flex items-center space-x-4">
+          {/* 👇 This is the corrected conditional block */}
           {userInfo ? (
             <>
-              <span className="text-white font-medium mr-2">Welcome, {userInfo.name}</span>
+              <span className="text-white font-semibold">Welcome, <span className="text-cyan-300">{userInfo.name}</span></span>
               <button
                 onClick={logoutHandler}
-                className="px-3 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white font-semibold shadow-sm transition transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-300"
+                className="px-4 py-2 rounded-md bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-400 hover:to-pink-400 text-white font-bold shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-300"
                 aria-label="Logout"
               >
                 Logout
@@ -57,17 +57,14 @@ const Header = () => {
             </>
           ) : (
             <>
-              <Link
-                to="/login"
-                className="px-3 py-2 rounded-md bg-white/10 text-white font-medium hover:bg-cyan-500/80 hover:text-white transition transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-300"
-              >
+              <Link to="/login" className="text-white font-semibold hover:text-cyan-300 transition-colors duration-300">
                 Login
               </Link>
               <Link
                 to="/register"
-                className="px-4 py-2 rounded-md bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 text-white font-semibold shadow-md transform hover:scale-105 transition focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                className="bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 text-white px-4 py-2 rounded-md font-semibold flex items-center space-x-2 transition-colors duration-300"
               >
-                Sign Up
+                <span>Sign Up</span>
               </Link>
             </>
           )}
@@ -81,11 +78,11 @@ const Header = () => {
             className="p-2 rounded-md bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300"
           >
             {mobileOpen ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
                 <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
                 <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             )}
@@ -95,22 +92,22 @@ const Header = () => {
 
       {/* mobile dropdown */}
       {mobileOpen && (
-        <div className="md:hidden w-full bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800/95 border-t border-white/10 backdrop-blur-md">
-          <div className="container mx-auto px-6 py-4 flex flex-col gap-3">
+        <div className="md:hidden w-full bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800/95 border-t border-white/10 backdrop-blur-md shadow-2xl rounded-b-2xl">
+          <div className="px-6 py-6 flex flex-col gap-4">
             <Link
               to="/topics"
               onClick={() => setMobileOpen(false)}
-              className="text-white font-medium px-3 py-2 rounded-md hover:bg-white/10 hover:text-cyan-300 transition-colors duration-200"
+              className="text-white font-semibold px-3 py-2 rounded-md hover:bg-white/10 hover:text-cyan-300 transition-colors duration-200"
             >
               Topics
             </Link>
 
             {userInfo ? (
               <>
-                <div className="text-white font-medium">Welcome, {userInfo.name}</div>
+                <div className="text-white font-semibold">Welcome, <span className="text-cyan-300">{userInfo.name}</span></div>
                 <button
                   onClick={() => { setMobileOpen(false); logoutHandler(); }}
-                  className="w-full text-left px-3 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white font-semibold transition"
+                  className="w-full text-left px-3 py-2 rounded-md bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-400 hover:to-pink-400 text-white font-bold shadow transition"
                 >
                   Logout
                 </button>
@@ -120,14 +117,14 @@ const Header = () => {
                 <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="px-3 py-2 rounded-md bg-white/10 text-white font-medium hover:bg-cyan-500/80 hover:text-white transition"
+                  className="px-3 py-2 rounded-md bg-white/10 text-white font-semibold hover:bg-cyan-500/80 hover:text-white transition"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
                   onClick={() => setMobileOpen(false)}
-                  className="px-3 py-2 rounded-md bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 text-white font-semibold"
+                  className="px-3 py-2 rounded-md bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 text-white font-bold shadow"
                 >
                   Sign Up
                 </Link>
