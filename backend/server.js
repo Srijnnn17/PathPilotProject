@@ -5,33 +5,28 @@ import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import userRoutes from './routes/userRoutes.js';
+import topicRoutes from './routes/topicRoutes.js'; // 👈 Import new topic routes
 import quizRoutes from './routes/quizRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
-import topicRoutes from './routes/topicRoutes.js'; // 👈 Add this line
 
 const port = process.env.PORT || 5000;
 
 connectDB();
 
-const app = express(); // 👈 This line was missing
+const app = express();
 
-// Body parser and cookie parser middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.get('/', (req, res) => {
-  res.send('API is running...');
-});
-
 // Mount the routes
 app.use('/api/users', userRoutes);
-app.use('/api/quizzes', quizRoutes); // 👈 Change this line
+app.use('/api/topics', topicRoutes); // 👈 Use the new topic routes
+app.use('/api/quizzes', quizRoutes); // 👈 Mount quiz routes here
 app.use('/api/ai', aiRoutes);
-app.use('/api/topics', topicRoutes); // 👈 Add this line
 
+app.get('/', (req, res) => res.send('API is running...'));
 
-// Error Handlers
 app.use(notFound);
 app.use(errorHandler);
 

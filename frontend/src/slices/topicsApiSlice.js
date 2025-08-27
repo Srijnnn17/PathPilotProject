@@ -1,7 +1,7 @@
 import { apiSlice } from './apiSlice.js';
 const TOPICS_URL = '/api/topics';
 const AI_URL = '/api/ai';
-const QUIZZES_URL = '/api/quizzes'; // 👈 This will now be used consistently
+const QUIZZES_URL = '/api/quizzes';
 
 export const topicsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -17,7 +17,7 @@ export const topicsApiSlice = apiSlice.injectEndpoints({
     }),
     submitQuiz: builder.mutation({
       query: (data) => ({
-        url: `${QUIZZES_URL}/submit`, // Now correctly builds /api/quizzes/submit
+        url: `${QUIZZES_URL}/submit`,
         method: 'POST',
         body: data,
       }),
@@ -25,7 +25,7 @@ export const topicsApiSlice = apiSlice.injectEndpoints({
     }),
     getMyQuizAttempts: builder.query({
       query: () => ({
-        url: `${QUIZZES_URL}/my-attempts`, // Now correctly builds /api/quizzes/my-attempts
+        url: `${QUIZZES_URL}/my-attempts`, // Correctly builds /api/quizzes/my-attempts
       }),
       providesTags: ['QuizAttempt'],
     }),

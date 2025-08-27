@@ -6,6 +6,11 @@ const quizAttemptSchema = new mongoose.Schema({
     required: true,
     ref: 'User',
   },
+  topic: { // 👈 This is the field we are fixing
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'Topic',
+  },
   topicName: {
     type: String,
     required: true,
@@ -18,7 +23,6 @@ const quizAttemptSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  // Storing the questions and answers for potential review later
   responses: [{
     question: String,
     options: [String],
