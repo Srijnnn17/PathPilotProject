@@ -7,6 +7,7 @@ import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import userRoutes from './routes/userRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import topicRoutes from './routes/topicRoutes.js'; // 👈 Add this line
 
 const port = process.env.PORT || 5000;
 
@@ -25,8 +26,10 @@ app.get('/', (req, res) => {
 
 // Mount the routes
 app.use('/api/users', userRoutes);
-app.use('/api', quizRoutes);
+app.use('/api/quizzes', quizRoutes); // 👈 Change this line
 app.use('/api/ai', aiRoutes);
+app.use('/api/topics', topicRoutes); // 👈 Add this line
+
 
 // Error Handlers
 app.use(notFound);
