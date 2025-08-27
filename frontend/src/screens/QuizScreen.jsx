@@ -1,20 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useGenerateQuizQuery, useSubmitQuizMutation } from '../slices/topicsApiSlice.js';
+import { useGenerateQuizQuery, useSubmitQuizMutation, useGetTopicsQuery } from '../slices/topicsApiSlice.js';
 import { toast } from 'react-toastify';
 import Loader from '../components/Loader.jsx';
 
 const QuizScreen = () => {
-  const { topicName } = useParams(); // Use topicName directly
+  // FIX #1: Directly get `topicId` from the URL params.
+  // The parameter name in your route is `topicId`, not `topicName`.
+  const { topicId } = useParams();
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
 
-  const { data: questions, isLoading: isLoadingQuiz, error: quizError } = useGenerateQuizQuery(topicName, {
-    skip: !userInfo,
-  });
-  const [submitQuiz, { isLoading: isSubmitting }] = useSubmitQuizMutation();
+  // Fetch all topics to get the name from the ID
+  const { data: topics } = useGetTopicsQuery();
+  const topic = topics?.find((t) => t._id === topicId);
 
+  // This part is now correct because `topicId` will have the right value
+  const { data: questions, isLoading: isLoadingQuiz, error: quizError } = useGenerateQuizQuery(topicId, {
+    skip: !userInfo || !topicId, // Also skip if topicId is not yet available
+    refetchOnMountOrArgChange: true,
+  });
+
+  const [submitQuiz, { isLoading: isSubmitting }] = useSubmitQuizMutation();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
@@ -26,6 +34,13 @@ const QuizScreen = () => {
     }
   }, [userInfo, navigate]);
 
+  useEffect(() => {
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers({});
+    setShowResults(false);
+    setFinalScore(0);
+  }, [topicId]);
+
   const handleAnswerSelect = (option) => {
     setSelectedAnswers({
       ...selectedAnswers,
@@ -33,26 +48,21 @@ const QuizScreen = () => {
     });
   };
 
-  // 👇 CORRECTED SUBMISSION LOGIC
   const handleSubmit = async () => {
-    // Add a check to ensure questions data is loaded
-    if (!questions) {
+    if (!questions || !topic) { // Check for topic as well
       toast.error('Quiz data is not available. Please try again.');
       return;
     }
-
     try {
       const responses = Object.keys(selectedAnswers).map(questionText => ({
         question: questionText,
         userAnswer: selectedAnswers[questionText],
       }));
 
-      const res = await submitQuiz({
-        topicName, // Send topicName directly
-        responses,
-        questions,
-      }).unwrap();
-
+      // FIX #2: Your backend `submitQuiz` controller expects `topicName`.
+      // You were sending `topicId`. We already have the full topic object, so we can send its name.
+      const res = await submitQuiz({ topicName: topic.name, responses, questions }).unwrap();
+      
       setFinalScore(res.score);
       setShowResults(true);
     } catch (err) {
@@ -68,7 +78,6 @@ const QuizScreen = () => {
     }
   };
 
-  // --- Your beautiful JSX styling remains unchanged below ---
   if (isLoadingQuiz) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800 py-12 px-4">
@@ -92,7 +101,7 @@ const QuizScreen = () => {
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800 py-12 px-4">
         <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-10 max-w-xl w-full text-center">
           <h1 className="text-4xl font-extrabold text-white mb-4 drop-shadow-lg">
-            Quiz Results for <span className="bg-gradient-to-r from-cyan-300 to-indigo-400 bg-clip-text text-transparent">{decodeURIComponent(topicName)}</span>
+            Quiz Results for <span className="bg-gradient-to-r from-cyan-300 to-indigo-400 bg-clip-text text-transparent">{topic ? topic.name : ''}</span>
           </h1>
           <p className="text-2xl text-gray-200 mb-8">You scored <span className="font-bold text-cyan-300">{finalScore}</span> out of <span className="font-bold text-indigo-300">{questions.length}</span>!</p>
           <button 
@@ -114,15 +123,32 @@ const QuizScreen = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800 py-12 px-4">
+      <style>
+        {`
+          .animate-gradient-x {
+            background-size: 200% 200%;
+            animation: gradient-x 3s ease-in-out infinite;
+          }
+          @keyframes gradient-x {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+        `}
+      </style>
+      <div className="mb-6 text-center">
+        <h2 className="text-3xl font-extrabold text-white mb-2 drop-shadow flex flex-wrap justify-center gap-x-4">
+          <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-500 bg-clip-text text-transparent animate-gradient-x uppercase">
+            {topic ? topic.name : ''}
+          </span>
+          <span className="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-500 bg-clip-text text-transparent animate-gradient-x uppercase">
+            Quiz
+          </span>
+        </h2>
+        <p className="text-md text-gray-200">Question {currentQuestionIndex + 1} of {questions.length}</p>
+      </div>
       <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-10 max-w-2xl w-full">
-        <div className="mb-6 text-center">
-          <h2 className="text-3xl font-extrabold text-white mb-2 drop-shadow">
-            <span className="bg-gradient-to-r from-cyan-300 to-indigo-400 bg-clip-text text-transparent">{decodeURIComponent(topicName)}</span> Quiz
-          </h2>
-          <p className="text-md text-gray-200">Question {currentQuestionIndex + 1} of {questions.length}</p>
-        </div>
         <p className="text-xl text-white mb-8 text-center font-semibold drop-shadow">{currentQuestion.question}</p>
-
         <div className="space-y-4">
           {currentQuestion.options.map((option, index) => (
             <button
@@ -147,7 +173,6 @@ const QuizScreen = () => {
             </button>
           ))}
         </div>
-
         <div className="mt-10 flex justify-end">
           <button
             onClick={handleNextQuestion}

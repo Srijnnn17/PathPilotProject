@@ -57,7 +57,6 @@ const submitQuiz = asyncHandler(async (req, res) => {
 // @route   GET /api/quizzes/my-attempts
 // @access  Private
 const getMyQuizAttempts = asyncHandler(async (req, res) => {
-  // Populate the 'topic' field to get the topic name
   const attempts = await QuizAttempt.find({ user: req.user._id }).populate('topic', 'name');
   res.status(200).json(attempts);
 });

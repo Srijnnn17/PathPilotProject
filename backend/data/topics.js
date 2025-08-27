@@ -10,5 +10,9 @@ export const topics = [
   {
     name: 'Node.js',
     description: 'Challenge yourself with questions about the Node.js runtime, modules, and backend development.'
+  },
+  {
+    name: 'HTML',
+    description: 'Challenge yourself with questions about the HTML.'
   }
 ];
