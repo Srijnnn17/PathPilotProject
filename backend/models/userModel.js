@@ -17,6 +17,11 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    skills: {
+      type: Map,
+      of: String, // Maps topic name (String) to skill level (String)
+      default: {},
+    },
     role: {
       type: String,
       required: true,

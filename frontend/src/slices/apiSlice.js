@@ -14,6 +14,6 @@ const baseQuery = fetchBaseQuery({ baseUrl: '' });
 
 export const apiSlice = createApi({
   baseQuery,
-  tagTypes: ['User', 'Topic', 'Quiz', 'QuizAttempt'], // 👈 Ensure 'Quiz' & 'QuizAttempt' are here
+  tagTypes: ['User', 'Topic', 'Quiz', 'QuizAttempt', 'LearningPath'], // 👈 Ensure 'Quiz' & 'QuizAttempt' are here
   endpoints: (builder) => ({}),
 });

@@ -6,19 +6,16 @@ import { toast } from 'react-toastify';
 import Loader from '../components/Loader.jsx';
 
 const QuizScreen = () => {
-  // FIX #1: Directly get `topicId` from the URL params.
-  // The parameter name in your route is `topicId`, not `topicName`.
   const { topicId } = useParams();
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
 
-  // Fetch all topics to get the name from the ID
   const { data: topics } = useGetTopicsQuery();
   const topic = topics?.find((t) => t._id === topicId);
 
-  // This part is now correct because `topicId` will have the right value
-  const { data: questions, isLoading: isLoadingQuiz, error: quizError } = useGenerateQuizQuery(topicId, {
-    skip: !userInfo || !topicId, // Also skip if topicId is not yet available
+  // Use the topic NAME for the AI query, not the ID
+  const { data: questions, isLoading: isLoadingQuiz, error: quizError } = useGenerateQuizQuery(topic?.name, {
+    skip: !userInfo || !topic, // Skip if no user or topic object yet
     refetchOnMountOrArgChange: true,
   });
 
@@ -49,7 +46,7 @@ const QuizScreen = () => {
   };
 
   const handleSubmit = async () => {
-    if (!questions || !topic) { // Check for topic as well
+    if (!questions || !topic) {
       toast.error('Quiz data is not available. Please try again.');
       return;
     }
@@ -59,11 +56,10 @@ const QuizScreen = () => {
         userAnswer: selectedAnswers[questionText],
       }));
 
-      // FIX #2: Your backend `submitQuiz` controller expects `topicName`.
-      // You were sending `topicId`. We already have the full topic object, so we can send its name.
       const res = await submitQuiz({ topicName: topic.name, responses, questions }).unwrap();
       
-      setFinalScore(res.score);
+      // 👇 THIS IS THE CORRECTED LINE
+      setFinalScore(res.attempt.score); 
       setShowResults(true);
     } catch (err) {
       toast.error(err?.data?.message || err.error);
@@ -78,6 +74,7 @@ const QuizScreen = () => {
     }
   };
 
+  // --- Your beautiful JSX styling remains unchanged below ---
   if (isLoadingQuiz) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800 py-12 px-4">

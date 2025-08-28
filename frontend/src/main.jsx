@@ -13,9 +13,10 @@ import './index.css';
 import HomeScreen from './screens/HomeScreen.jsx';
 import LoginScreen from './screens/LoginScreen.jsx';
 import RegisterScreen from './screens/RegisterScreen.jsx';
-import TopicsScreen from './screens/TopicsScreen.jsx'; // 👈 Import
-import QuizScreen from './screens/QuizScreen.jsx';   // 👈 Import
-import DashboardScreen from './screens/DashboardScreen.jsx'; // 👈 Import
+import TopicsScreen from './screens/TopicsScreen.jsx';
+import QuizScreen from './screens/QuizScreen.jsx';
+import DashboardScreen from './screens/DashboardScreen.jsx';
+import LearningPathScreen from './screens/LearningPathScreen.jsx';
 
 
 const router = createBrowserRouter(
@@ -24,9 +25,10 @@ const router = createBrowserRouter(
       <Route index={true} path='/' element={<HomeScreen />} />
       <Route path='/login' element={<LoginScreen />} />
       <Route path='/register' element={<RegisterScreen />} />
-      <Route path='/topics' element={<TopicsScreen />} />   {/* 👈 Add this line */}
-      <Route path='/quiz/:topicId' element={<QuizScreen />} /> {/* 👈 Add this line */}
-       <Route path='/dashboard' element={<DashboardScreen />} /> {/* 👈 Add this line */}
+      <Route path='/topics' element={<TopicsScreen />} />
+      <Route path='/quiz/:topicName' element={<QuizScreen />} /> {/* Corrected to topicName */}
+      <Route path='/dashboard' element={<DashboardScreen />} />
+      <Route path='/path/:topicId' element={<LearningPathScreen />} /> {/* 👈 This was the missing route */}
     </Route>
   )
 );

@@ -23,6 +23,13 @@ export const topicsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['QuizAttempt'],
     }),
+     // 👇 Add this new query
+    getLearningPath: builder.query({
+      query: (topicId) => ({
+        url: `/api/learning-paths/${topicId}`,
+      }),
+      providesTags: ['LearningPath'],
+    }),
     getMyQuizAttempts: builder.query({
       query: () => ({
         url: `${QUIZZES_URL}/my-attempts`, // Correctly builds /api/quizzes/my-attempts
@@ -37,4 +44,6 @@ export const {
   useGenerateQuizQuery,
   useSubmitQuizMutation,
   useGetMyQuizAttemptsQuery,
+  useGetLearningPathQuery, // 👈 Export the new hook
+
 } = topicsApiSlice;

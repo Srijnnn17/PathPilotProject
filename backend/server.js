@@ -7,6 +7,7 @@ import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import userRoutes from './routes/userRoutes.js';
 import topicRoutes from './routes/topicRoutes.js'; // 👈 Import new topic routes
 import quizRoutes from './routes/quizRoutes.js';
+import learningPathRoutes from './routes/learningPathRoutes.js'; // 👈 Import
 import aiRoutes from './routes/aiRoutes.js';
 
 const port = process.env.PORT || 5000;
@@ -23,6 +24,7 @@ app.use(cookieParser());
 app.use('/api/users', userRoutes);
 app.use('/api/topics', topicRoutes); // 👈 Use the new topic routes
 app.use('/api/quizzes', quizRoutes); // 👈 Mount quiz routes here
+app.use('/api/learning-paths', learningPathRoutes); // 👈 Add this line
 app.use('/api/ai', aiRoutes);
 
 app.get('/', (req, res) => res.send('API is running...'));
