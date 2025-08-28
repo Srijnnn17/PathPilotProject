@@ -26,7 +26,7 @@ const router = createBrowserRouter(
       <Route path='/login' element={<LoginScreen />} />
       <Route path='/register' element={<RegisterScreen />} />
       <Route path='/topics' element={<TopicsScreen />} />
-      <Route path='/quiz/:topicName' element={<QuizScreen />} /> {/* Corrected to topicName */}
+      <Route path='/quiz/:topicId' element={<QuizScreen />} /> {/* Corrected to topicId */}
       <Route path='/dashboard' element={<DashboardScreen />} />
       <Route path='/path/:topicId' element={<LearningPathScreen />} /> {/* 👈 This was the missing route */}
     </Route>
