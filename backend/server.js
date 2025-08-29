@@ -53,7 +53,7 @@ const app = express();
 // --- START CORS CONFIGURATION ---
 const corsOptions = {
   // This must be the exact URL of your Vercel frontend
-  origin: 'https://path-pilot-client-p2wjwiyr2-ajnonn17s-projects.vercel.app',
+  origin: 'https://path-pilot-rose.vercel.app/',
   // This is required to allow cookies to be sent from the frontend
   credentials: true, 
 };
