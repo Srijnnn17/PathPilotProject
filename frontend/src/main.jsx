@@ -17,7 +17,7 @@ import TopicsScreen from './screens/TopicsScreen.jsx';
 import QuizScreen from './screens/QuizScreen.jsx';
 import DashboardScreen from './screens/DashboardScreen.jsx';
 import LearningPathScreen from './screens/LearningPathScreen.jsx';
-
+import PathGenerationScreen from './screens/PathGenerationScreen.jsx';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -26,9 +26,10 @@ const router = createBrowserRouter(
       <Route path='/login' element={<LoginScreen />} />
       <Route path='/register' element={<RegisterScreen />} />
       <Route path='/topics' element={<TopicsScreen />} />
-      <Route path='/quiz/:topicId' element={<QuizScreen />} /> {/* Corrected to topicId */}
+      <Route path='/quiz/:topicId' element={<QuizScreen />} />
       <Route path='/dashboard' element={<DashboardScreen />} />
-      <Route path='/path/:topicId' element={<LearningPathScreen />} /> {/* 👈 This was the missing route */}
+      <Route path='/path/:topicId' element={<LearningPathScreen />} />
+      <Route path='/generate-path/:topicName' element={<PathGenerationScreen />} /> {/* 👈 This route is now active */}
     </Route>
   )
 );

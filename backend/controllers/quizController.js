@@ -51,14 +51,14 @@ const submitQuiz = asyncHandler(async (req, res) => {
   }
 
   // --- Update User's Skill ---
+  // Use topic._id as the key to avoid "." issues
   const user = await User.findById(userId);
   if (user) {
-    user.skills.set(topicName, skillLevel);
+    user.skills.set(topic._id.toString(), skillLevel);
     await user.save();
   }
 
   // --- Generate a Simple Learning Path ---
-  // (This is a placeholder; we will make this more dynamic later with AI)
   const modules = [
     { title: `${topicName} Fundamentals`, difficulty: 'Beginner' },
     { title: `Intermediate ${topicName}`, difficulty: 'Intermediate' },
@@ -72,7 +72,7 @@ const submitQuiz = asyncHandler(async (req, res) => {
       topic: topic._id,
       modules: modules
     },
-    { upsert: true, new: true, setDefaultsOnInsert: true } // Upsert: creates if not found, updates if found
+    { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
   // --- Save Quiz Attempt ---

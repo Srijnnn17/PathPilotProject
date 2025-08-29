@@ -13,9 +13,8 @@ const QuizScreen = () => {
   const { data: topics } = useGetTopicsQuery();
   const topic = topics?.find((t) => t._id === topicId);
 
-  // Use the topic NAME for the AI query, not the ID
   const { data: questions, isLoading: isLoadingQuiz, error: quizError } = useGenerateQuizQuery(topic?.name, {
-    skip: !userInfo || !topic, // Skip if no user or topic object yet
+    skip: !userInfo || !topic,
     refetchOnMountOrArgChange: true,
   });
 
@@ -58,7 +57,6 @@ const QuizScreen = () => {
 
       const res = await submitQuiz({ topicName: topic.name, responses, questions }).unwrap();
       
-      // 👇 THIS IS THE CORRECTED LINE
       setFinalScore(res.attempt.score); 
       setShowResults(true);
     } catch (err) {
@@ -73,8 +71,7 @@ const QuizScreen = () => {
       handleSubmit();
     }
   };
-
-  // --- Your beautiful JSX styling remains unchanged below ---
+  
   if (isLoadingQuiz) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800 py-12 px-4">
@@ -93,6 +90,7 @@ const QuizScreen = () => {
     </div>
   );
 
+  // This is the section with the required changes
   if (showResults) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800 py-12 px-4">
@@ -101,11 +99,13 @@ const QuizScreen = () => {
             Quiz Results for <span className="bg-gradient-to-r from-cyan-300 to-indigo-400 bg-clip-text text-transparent">{topic ? topic.name : ''}</span>
           </h1>
           <p className="text-2xl text-gray-200 mb-8">You scored <span className="font-bold text-cyan-300">{finalScore}</span> out of <span className="font-bold text-indigo-300">{questions.length}</span>!</p>
+          
+          {/* 👇 THIS IS THE CHANGED BUTTON */}
           <button 
-            onClick={() => navigate('/topics')}
+            onClick={() => navigate(`/generate-path/${topic.name}`)}
             className="bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 text-white font-bold px-8 py-3 rounded-full shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-indigo-300"
           >
-            Back to Topics
+            Choose Your Path
           </button>
         </div>
       </div>

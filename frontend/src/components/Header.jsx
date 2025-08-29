@@ -38,6 +38,12 @@ const Header = () => {
             >
               Topics
             </Link>
+            <Link
+              to="/dashboard"
+              className="relative text-white font-semibold px-4 py-2 rounded-md hover:text-cyan-300 transition-colors duration-200 after:content-[''] after:block after:h-0.5 after:bg-gradient-to-r after:from-cyan-400 after:to-indigo-400 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 after:origin-left"
+            >
+              Dashboard
+            </Link>
           </div>
         </div>
 
@@ -100,6 +106,14 @@ const Header = () => {
               className="text-white font-semibold px-3 py-2 rounded-md hover:bg-white/10 hover:text-cyan-300 transition-colors duration-200"
             >
               Topics
+            </Link>
+
+            <Link
+              to="/dashboard"
+              onClick={() => setMobileOpen(false)}
+              className="text-white font-semibold px-3 py-2 rounded-md hover:bg-white/10 hover:text-cyan-300 transition-colors duration-200"
+            >
+              Dashboard
             </Link>
 
             {userInfo ? (

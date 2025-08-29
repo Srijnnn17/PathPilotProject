@@ -48,12 +48,11 @@ const DashboardScreen = () => {
                           {((attempt.score / attempt.totalQuestions) * 100).toFixed(0)}%
                         </p>
                       </div>
-                       {/* 👇 This is the corrected line */}
                       <Link 
-                        to={`/path/${attempt.topic?._id}`}
+                        to={`/generate-path/${attempt.topic?.name || attempt.topicName}`}
                         className={`bg-cyan-500/80 text-white font-semibold px-4 py-2 rounded-lg hover:bg-cyan-400 transition-colors duration-300 ${!attempt.topic ? 'pointer-events-none opacity-50' : ''}`}
                       >
-                        View Path
+                        Generate Path
                       </Link>
                     </div>
                   </div>
