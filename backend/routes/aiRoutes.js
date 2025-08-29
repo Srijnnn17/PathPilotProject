@@ -1,9 +1,9 @@
 import express from 'express';
-import { generateQuiz } from '../controllers/aiController.js';
-
 const router = express.Router();
+import { generateQuiz, generateLearningPath } from '../controllers/aiController.js'; // 👈 Import
+import { protect } from '../middleware/authMiddleware.js';
 
-// Correct: use :topicId
-router.get('/generate-quiz/:topicId', generateQuiz);
+router.route('/generate-quiz/:topicName').get(protect, generateQuiz);
+router.route('/generate-path/:topicName').get(protect, generateLearningPath); // 👈 Add this line
 
 export default router;

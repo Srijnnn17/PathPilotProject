@@ -1,21 +1,28 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useGenerateAiPathMutation } from '../slices/topicsApiSlice.js';
+import { toast } from 'react-toastify';
+import Loader from '../components/Loader.jsx';
 
 const PathGenerationScreen = () => {
   const { topicName } = useParams();
   const navigate = useNavigate();
 
-  // Placeholder handlers - we will wire these up later to call the backend
-  const handleAiPath = () => {
-    // Later, this will call the AI generator and then navigate
-    console.log(`Generating AI path for ${topicName}`);
-    // navigate(`/path/${topicId}/ai`); // Example future navigation
+  const [generateAiPath, { isLoading }] = useGenerateAiPathMutation();
+
+  const handleAiPath = async () => {
+    try {
+      const pathData = await generateAiPath(topicName).unwrap();
+      toast.success('AI Learning Path Generated!');
+      // 👇 This will navigate to the new screen and pass the AI data
+      navigate(`/ai-path/${topicName}`, { state: { pathData } });
+    } catch (err) {
+      toast.error(err?.data?.message || err.error);
+    }
   };
 
   const handleResourcePath = () => {
-    // Later, this will call the YouTube generator and then navigate
-    console.log(`Generating resource path for ${topicName}`);
-    // navigate(`/path/${topicId}/resources`); // Example future navigation
+    toast.info('Resource-based path generation is coming soon!');
   };
 
   return (
@@ -25,7 +32,10 @@ const PathGenerationScreen = () => {
           Choose Your Learning Path
         </h1>
         <p className="text-lg text-gray-300">
-          Select how you'd like to master <span className="font-bold text-cyan-300">{decodeURIComponent(topicName)}</span>.
+          Select how you'd like to master{' '}
+          <span className="font-bold text-cyan-300">
+            {decodeURIComponent(topicName)}
+          </span>.
         </p>
       </div>
 
@@ -36,13 +46,16 @@ const PathGenerationScreen = () => {
             AI Tutor Path
           </h2>
           <p className="text-gray-200 mb-6 flex-grow">
-            Let our advanced AI generate a completely custom, step-by-step curriculum for you. This path is tailored to your skill level and provides a structured learning experience.
+            Let our advanced AI generate a completely custom, step-by-step
+            curriculum for you. This path is tailored to your skill level and
+            provides a structured learning experience.
           </p>
           <button
             onClick={handleAiPath}
-            className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 text-white font-bold px-8 py-3 rounded-full shadow-lg transition-transform transform hover:scale-110"
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 text-white font-bold px-8 py-3 rounded-full shadow-lg transition-transform transform hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Generate with AI
+            {isLoading ? <Loader /> : 'Generate with AI'}
           </button>
         </div>
 
@@ -52,7 +65,9 @@ const PathGenerationScreen = () => {
             Resource-Based Path
           </h2>
           <p className="text-gray-200 mb-6 flex-grow">
-            Explore a curated path built from top-rated YouTube tutorials and articles. This path is perfect for visual learners who prefer real-world examples and diverse content.
+            Explore a curated path built from top-rated YouTube tutorials and
+            articles. This path is perfect for visual learners who prefer
+            real-world examples and diverse content.
           </p>
           <button
             onClick={handleResourcePath}

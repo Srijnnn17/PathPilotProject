@@ -23,18 +23,19 @@ export const topicsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['QuizAttempt'],
     }),
-     // 👇 Add this new query
-    getLearningPath: builder.query({
-      query: (topicId) => ({
-        url: `/api/learning-paths/${topicId}`,
-      }),
-      providesTags: ['LearningPath'],
-    }),
+    
     getMyQuizAttempts: builder.query({
       query: () => ({
         url: `${QUIZZES_URL}/my-attempts`, // Correctly builds /api/quizzes/my-attempts
       }),
       providesTags: ['QuizAttempt'],
+    }),
+    // 👇 Add this new mutation
+    generateAiPath: builder.mutation({
+      query: (topicName) => ({
+        url: `${AI_URL}/generate-path/${topicName}`,
+        method: 'GET', // It's a GET request, but we use a mutation to trigger it on command
+      }),
     }),
   }),
 });
@@ -44,6 +45,6 @@ export const {
   useGenerateQuizQuery,
   useSubmitQuizMutation,
   useGetMyQuizAttemptsQuery,
-  useGetLearningPathQuery, // 👈 Export the new hook
+  useGenerateAiPathMutation, // 👈 Export the new hook
 
 } = topicsApiSlice;

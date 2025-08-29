@@ -16,8 +16,9 @@ import RegisterScreen from './screens/RegisterScreen.jsx';
 import TopicsScreen from './screens/TopicsScreen.jsx';
 import QuizScreen from './screens/QuizScreen.jsx';
 import DashboardScreen from './screens/DashboardScreen.jsx';
-import LearningPathScreen from './screens/LearningPathScreen.jsx';
 import PathGenerationScreen from './screens/PathGenerationScreen.jsx';
+import AiPathScreen from './screens/AiPathScreen.jsx'; // 👈 Import the new screen
+
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -28,8 +29,9 @@ const router = createBrowserRouter(
       <Route path='/topics' element={<TopicsScreen />} />
       <Route path='/quiz/:topicId' element={<QuizScreen />} />
       <Route path='/dashboard' element={<DashboardScreen />} />
-      <Route path='/path/:topicId' element={<LearningPathScreen />} />
       <Route path='/generate-path/:topicName' element={<PathGenerationScreen />} /> {/* 👈 This route is now active */}
+      <Route path='/ai-path/:topicName' element={<AiPathScreen />} /> {/* 👈 Add this new route */}
+
     </Route>
   )
 );
