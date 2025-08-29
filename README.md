@@ -1,107 +1,103 @@
-# 🚀 PathPilot - Your AI-Powered Learning Navigator
+🚀 PathPilot - Your AI-Powered Learning Navigator
 
------
+Live Demo ✨
+PathPilot is a dynamic, AI-driven learning platform designed to revolutionize how users approach new subjects. By leveraging the power of generative AI, PathPilot creates personalized learning paths and generates interactive quizzes on any topic, providing a tailored educational experience.
 
-### ► OVERVIEW
+This full-stack MERN application was built from the ground up, featuring a secure JWT-based authentication system, a sleek and responsive user interface, and a robust backend architecture deployed on modern cloud infrastructure.
 
-Welcome to PathPilot, a full-stack, AI-enhanced web platform that revolutionizes online learning. PathPilot scraps the inefficient one-size-fits-all model and instead uses the power of Google's Gemini API to generate dynamic, on-the-fly skill assessments. Based on your performance, it crafts a truly personalized learning roadmap, guiding you to mastery.
+🌟 Key Features
+🤖 AI-Powered Content Generation: Dynamically creates comprehensive learning paths and multiple-choice quizzes on any topic using a generative AI model.
 
-This project was built to demonstrate a mastery of modern web development technologies, from a robust MERN stack backend to a sleek, responsive React frontend, all powered by a cutting-edge AI engine.
+🔐 Secure User Authentication: Full authentication system using JSON Web Tokens (JWT) stored in secure HTTP-Only cookies.
 
------
+📊 Personalized Dashboard: Allows users to track their quiz attempts and monitor their learning progress over time.
 
-### ✨ CORE FEATURES
+🎨 Modern & Responsive UI: A beautiful and intuitive user interface built with React and Tailwind CSS, featuring smooth animations with Framer Motion.
 
-  * **🤖 Dynamic AI Quiz Generation**: Gone are the days of static questions. PathPilot uses the Google Gemini API to generate a unique, fresh set of 10 quiz questions in real-time, every time a user starts a skill assessment. This ensures every test is a new and relevant challenge.
+⚙️ Full-Stack MERN Architecture: Built on a robust and scalable architecture with separate, decoupled frontend and backend services.
 
-  * **🔐 Secure User Authentication**: A complete, secure authentication system built from the ground up with JWT (JSON Web Tokens) stored in secure httpOnly cookies, including backend validation and protected routes for a safe user experience.
+🛠️ Tech Stack & Architecture
+This project utilizes the MERN stack and is deployed on a modern, scalable infrastructure.
 
-  * **📊 Personalized Progress Dashboard**: A clean, intuitive dashboard where users can track their quiz history, view scores, and monitor their learning journey over time.
+Frontend
 
-  * **🎨 Responsive & Modern UI**: A beautiful, dark-themed user interface built with Tailwind CSS, designed to be fully responsive and visually stunning on any device, from mobile phones to desktop monitors.
+Backend
 
-  * **🏗️ Scalable MERN Stack Architecture**: A well-organized, production-quality codebase featuring a Node.js/Express backend for a powerful API and a React frontend with Redux Toolkit for efficient and predictable state management.
+React.js
 
------
+Node.js
 
-### 🛠️ TECH STACK & ARCHITECTURE
+Redux & RTK Query (for state management & data fetching)
 
-This project utilizes a modern MERN stack architecture, designed for scalability, performance, and maintainability.
+Express.js (for routing and middleware)
 
-#### Frontend
+Tailwind CSS (for styling)
 
-  * **Framework**: React.js
-  * **State Management**: Redux Toolkit (RTK Query)
-  * **Styling**: Tailwind CSS
-  * **Routing**: React Router
+MongoDB & Mongoose (for database)
 
-#### Backend
+Framer Motion (for animations)
 
-  * **Runtime**: Node.js
-  * **Framework**: Express.js
-  * **Database**: MongoDB Atlas & Mongoose
-  * **Authentication**: JSON Web Tokens (JWT)
+JSON Web Tokens (JWT) (for authentication)
 
-#### AI Engine
+Deployed on Vercel
 
-  * **Core Service**: Google Gemini API
+Deployed on Render
 
------
-
-### 🚀 GETTING STARTED
-
+🚀 Getting Started
 To get a local copy up and running, follow these simple steps.
 
-#### Prerequisites
+Prerequisites
+Node.js and npm (or yarn)
 
-Make sure you have Node.js and npm installed on your machine.
+MongoDB instance (local or cloud-hosted via Atlas)
 
-  * npm
-    `npm install npm@latest -g`
+Installation & Setup
+Clone the repository:
 
-#### Installation
+git clone [https://github.com/your-username/pathpilot-project.git](https://github.com/your-username/pathpilot-project.git)
+cd pathpilot-project
 
-1.  **Clone the repo**
-    `git clone https://github.com/Srijannn17/PathPilotProject.git`
+Setup the Backend:
 
-2.  **Install backend dependencies**
-    `cd backend`
-    `npm install`
+cd backend
+npm install
 
-3.  **Install frontend dependencies**
-    `cd ../frontend`
-    `npm install`
+Create a .env file in the backend root and add the following variables:
 
-4.  Create a `.env` file in the `backend` directory and add your secret keys:
-    `PORT=5000`
-    `MONGO_URI=YOUR_MONGODB_CONNECTION_STRING`
-    `JWT_SECRET=YOUR_JWT_SECRET`
-    `GEMINI_API_KEY=YOUR_GEMINI_API_KEY`
+NODE_ENV=development
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_super_secret_key
 
-#### Running the Application
+Start the backend server:
 
-1.  **Run the backend server** (from the `backend` directory)
-    `npm start`
+npm run server
 
-2.  **Run the frontend server** (from the `frontend` directory)
-    `npm run dev`
+Setup the Frontend:
 
-Now, open `http://localhost:5173` in your browser to see the application live\!
+cd ../frontend
+npm install
 
------
+Start the frontend development server:
 
-### 🌟 FUTURE GOALS
+npm run dev
 
-This project is built on a solid foundation, with many exciting features planned for the future:
+Your application should now be running locally, with the frontend at http://localhost:3000 and the backend at http://localhost:5000.
 
-  * **[ In Progress ]** 🧠 **Personalized Learning Path Generation**: Implement the core logic to create a custom learning roadmap based on quiz scores, suggesting modules and resources.
-  * **[ To Do ]** 🏆 **Gamification System**: Add XP, levels, and badges for completing quizzes and modules to make learning more engaging.
-  * **[ To Do ]** ⚙️ **Admin Panel**: Build a dashboard for managing users, topics, and content to maintain the quality of the platform.
+📝 License
+Distributed under the MIT License. See LICENSE for more information.
 
------
+<!-- MARKDOWN LINKS & BADGES -->
 
-### 🤝 CONTACT
-
-Srijan - srijannn17@gmail.com
-
-Project Link: [https://github.com/Srijannn17/PathPilotProject](https://www.google.com/search?q=https://github.com/Srijannn17/PathPilotProject)
+[]: #
+[react-url]: https://reactjs.org/
+[]: #
+[node-url]: https://nodejs.org/
+[]: #
+[express-url]: https://expressjs.com/
+[]: #
+[mongo-url]: https://www.mongodb.com/
+[]: #
+[vercel-url]: https://vercel.com/
+[]: #
+[render-url]: https://render.com/
