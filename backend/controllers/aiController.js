@@ -246,7 +246,143 @@ IMPORTANT: Return ONLY valid JSON array. Do not include markdown code blocks, ex
   */
 });
 
-// @desc    Generate ADAPTIVE Learning Path
+// Helper function to generate score-based learning path
+const generateScoreBasedPath = (topicName, percentage) => {
+  const topicLower = topicName.toLowerCase();
+  let modules = [];
+
+  if (percentage < 30) {
+    // Beginner Level - Focus on fundamentals
+    modules = [
+      {
+        title: `${topicName} Fundamentals`,
+        difficulty: 'Beginner',
+        description: `Start your journey with ${topicName} by mastering the core concepts, basic syntax, and fundamental principles. This module covers everything you need to get started.`,
+        resources: [
+          { name: `W3Schools: ${topicName} Tutorial`, url: `https://www.w3schools.com/${topicLower.replace(/\s+/g, '')}/default.asp` },
+          { name: `MDN: ${topicName} Basics`, url: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(topicName)}` },
+          { name: `${topicName} Official Documentation`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' official documentation')}` }
+        ]
+      },
+      {
+        title: `Getting Started with ${topicName}`,
+        difficulty: 'Beginner',
+        description: `Learn how to set up your development environment and create your first ${topicName} project. Understand the basic workflow and essential tools.`,
+        resources: [
+          { name: `${topicName} Installation Guide`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' installation guide')}` },
+          { name: `Beginner's Guide to ${topicName}`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' beginner guide')}` }
+        ]
+      },
+      {
+        title: `Core Concepts & Syntax`,
+        difficulty: 'Beginner',
+        description: `Dive deep into the essential syntax, data types, and core concepts that form the foundation of ${topicName}. Practice with simple examples and exercises.`,
+        resources: [
+          { name: `Learn ${topicName} Basics`, url: `https://www.google.com/search?q=${encodeURIComponent('learn ' + topicName + ' basics')}` },
+          { name: `${topicName} Examples`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' examples tutorial')}` }
+        ]
+      },
+      {
+        title: `Practice & Exercises`,
+        difficulty: 'Beginner',
+        description: `Reinforce your understanding through hands-on practice. Complete beginner-friendly exercises and build simple projects to solidify your knowledge.`,
+        resources: [
+          { name: `${topicName} Exercises`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' exercises practice')}` },
+          { name: `${topicName} Projects for Beginners`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' beginner projects')}` }
+        ]
+      }
+    ];
+  } else if (percentage < 70) {
+    // Intermediate Level - Build practical skills
+    modules = [
+      {
+        title: `${topicName} Best Practices`,
+        difficulty: 'Intermediate',
+        description: `Learn industry-standard practices, coding conventions, and design patterns used in real-world ${topicName} applications.`,
+        resources: [
+          { name: `${topicName} Style Guide`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' style guide best practices')}` },
+          { name: `MDN: ${topicName} Intermediate`, url: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(topicName + ' intermediate')}` },
+          { name: `${topicName} Design Patterns`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' design patterns')}` }
+        ]
+      },
+      {
+        title: `Building Real-World Applications`,
+        difficulty: 'Intermediate',
+        description: `Apply your knowledge by building practical applications. Learn to handle common scenarios, error handling, and integrate with other technologies.`,
+        resources: [
+          { name: `${topicName} Tutorial Projects`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' tutorial projects')}` },
+          { name: `${topicName} API Documentation`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' API documentation')}` }
+        ]
+      },
+      {
+        title: `Common Patterns & Techniques`,
+        difficulty: 'Intermediate',
+        description: `Master commonly used patterns, techniques, and methodologies in ${topicName}. Learn how experienced developers structure their code.`,
+        resources: [
+          { name: `${topicName} Advanced Techniques`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' advanced techniques')}` },
+          { name: `${topicName} Common Patterns`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' common patterns')}` }
+        ]
+      },
+      {
+        title: `Debugging & Problem Solving`,
+        difficulty: 'Intermediate',
+        description: `Develop your debugging skills and learn effective problem-solving strategies. Understand common issues and how to troubleshoot them.`,
+        resources: [
+          { name: `${topicName} Debugging Guide`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' debugging guide')}` },
+          { name: `${topicName} Common Errors`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' common errors solutions')}` }
+        ]
+      }
+    ];
+  } else {
+    // Advanced/Expert Level - Deep dive into advanced topics
+    modules = [
+      {
+        title: `${topicName} Performance Optimization`,
+        difficulty: 'Advanced',
+        description: `Optimize ${topicName} applications for maximum performance. Learn advanced optimization techniques, profiling, and performance tuning strategies.`,
+        resources: [
+          { name: `${topicName} Performance Guide`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' performance optimization')}` },
+          { name: `Advanced ${topicName} Techniques`, url: `https://www.google.com/search?q=${encodeURIComponent('advanced ' + topicName + ' techniques')}` },
+          { name: `${topicName} Profiling & Optimization`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' profiling optimization')}` }
+        ]
+      },
+      {
+        title: `Architecture & System Design`,
+        difficulty: 'Advanced',
+        description: `Design scalable and maintainable ${topicName} architectures. Learn advanced architectural patterns, microservices, and system design principles.`,
+        resources: [
+          { name: `${topicName} Architecture Patterns`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' architecture patterns')}` },
+          { name: `Scalable ${topicName} Systems`, url: `https://www.google.com/search?q=${encodeURIComponent('scalable ' + topicName + ' systems')}` },
+          { name: `${topicName} System Design`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' system design')}` }
+        ]
+      },
+      {
+        title: `Advanced Concepts & Internals`,
+        difficulty: 'Advanced',
+        description: `Dive deep into the internals of ${topicName}. Understand how it works under the hood, memory management, and low-level optimizations.`,
+        resources: [
+          { name: `${topicName} Internals`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' internals how it works')}` },
+          { name: `${topicName} Source Code`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' source code github')}` },
+          { name: `Deep Dive: ${topicName}`, url: `https://www.google.com/search?q=${encodeURIComponent('deep dive ' + topicName)}` }
+        ]
+      },
+      {
+        title: `Security & Production Best Practices`,
+        difficulty: 'Advanced',
+        description: `Master security best practices, production deployment strategies, and enterprise-level considerations for ${topicName} applications.`,
+        resources: [
+          { name: `${topicName} Security Best Practices`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' security best practices')}` },
+          { name: `${topicName} Production Guide`, url: `https://www.google.com/search?q=${encodeURIComponent(topicName + ' production deployment')}` },
+          { name: `Enterprise ${topicName}`, url: `https://www.google.com/search?q=${encodeURIComponent('enterprise ' + topicName)}` }
+        ]
+      }
+    ];
+  }
+
+  return { modules };
+};
+
+// @desc    Generate ADAPTIVE Learning Path (Score-Based)
 const generateLearningPath = asyncHandler(async (req, res) => {
   // NOTE: We now expect 'score' and 'total' in the body
   // ✅ FIXED: Decode URL-encoded topicName to handle special characters like '/' in UI/UX, AR/VR
@@ -257,140 +393,33 @@ const generateLearningPath = asyncHandler(async (req, res) => {
   // 1. Calculate Performance
   const percentage = Math.round((score / total) * 100);
   let difficultyLevel = 'Beginner';
-  let pathStrategy = '';
 
-  // 2. Define Strategy based on Score
+  // 2. Define Difficulty Level based on Score
   if (percentage < 30) {
-    difficultyLevel = 'Beginner / Remedial';
-    pathStrategy = `
-      The user scored ${percentage}% (Low). 
-      They are struggling with the basics.
-      - Focus heavily on FUNDAMENTALS, Syntax, and "Hello World" concepts.
-      - Use simple language.
-      - Do NOT introduce complex frameworks yet.
-    `;
+    difficultyLevel = 'Beginner';
   } else if (percentage < 70) {
     difficultyLevel = 'Intermediate';
-    pathStrategy = `
-      The user scored ${percentage}% (Average).
-      They know the basics but need practice.
-      - Focus on real-world patterns, common hooks/methods, and error handling.
-      - Bridge the gap between theory and building apps.
-    `;
   } else {
-    difficultyLevel = 'Advanced / Expert';
-    pathStrategy = `
-      The user scored ${percentage}% (High).
-      They are already proficient.
-      - Skip the basics completely.
-      - Focus on Performance Optimization, Architecture, Security, and Under-the-hood internals.
-      - Challenge them with complex scenarios.
-    `;
+    difficultyLevel = 'Advanced';
   }
 
-  console.log(`[AI START] Generating ${difficultyLevel} Path for ${decodedTopicName} (Score: ${percentage}%)`);
+  console.log(`[LEARNING PATH] Generating ${difficultyLevel} Path for ${decodedTopicName} (Score: ${percentage}%)`);
 
   try {
-    // ✅ FIXED: Get working model dynamically (will try models in sequence if one fails)
-    let modelInfo = getWorkingModel();
-    let modelIndex = 0;
-
-    const prompt = `
-You are an expert educational content creator. Create a custom learning path for "${decodedTopicName}".
-
-USER CONTEXT:
-${pathStrategy}
-
-REQUIREMENTS:
-1. Create exactly 4 modules tailored to the difficulty level: ${difficultyLevel}
-2. Each module must have:
-   - A clear, descriptive title
-   - A detailed description (2-3 sentences)
-   - At least 2-3 high-quality resource links
-3. RESOURCE LINK REQUIREMENTS:
-   - Use DIRECT documentation links (deep links, not homepages)
-   - Prioritize: MDN Web Docs, W3Schools, official documentation
-   - For MDN: Use format: https://developer.mozilla.org/en-US/docs/[topic-specific-path]
-   - For W3Schools: Use format: https://www.w3schools.com/[topic]/[specific-page]
-   - Include official docs when available (e.g., react.dev, nodejs.org)
-   - All links must be valid and topic-relevant
-
-OUTPUT FORMAT (JSON ONLY - NO MARKDOWN):
-{
-  "modules": [
-    {
-      "title": "Module Title (be specific)",
-      "difficulty": "${difficultyLevel}",
-      "description": "Detailed 2-3 sentence description of what this module covers and why it's important.",
-      "resources": [
-        { "name": "Descriptive link name (e.g., 'MDN: JavaScript Arrays')", "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" },
-        { "name": "W3Schools: Array Methods", "url": "https://www.w3schools.com/js/js_array_methods.asp" }
-      ]
-    }
-  ]
-}
-
-IMPORTANT: Return ONLY valid JSON. No markdown code blocks, no explanations.
-`;
-
-    let result;
-    try {
-      result = await modelInfo.model.generateContent(prompt);
-      // Cache the working model name for future requests
-      if (!cachedModelName) {
-        cachedModelName = modelInfo.modelName;
-        console.log(`[MODEL] Cached working model: ${cachedModelName}`);
-      }
-    } catch (modelError) {
-      // Try next model if current one fails
-      const nextModel = tryNextModel(modelIndex, modelError);
-      if (nextModel) {
-        modelInfo = nextModel;
-        modelIndex = nextModel.index;
-        result = await modelInfo.model.generateContent(prompt);
-        cachedModelName = modelInfo.modelName;
-        console.log(`[MODEL] Switched to working model: ${modelInfo.modelName}`);
-      } else {
-        throw modelError; // No more models to try
-      }
-    }
+    // Generate score-based learning path
+    const pathData = generateScoreBasedPath(decodedTopicName, percentage);
     
-    const text = result.response.text();
-    console.log(`[AI RESPONSE] Raw response length: ${text.length} characters`);
-    
-    // Clean the response
-    let cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    
-    // Try to find JSON object
-    const startIdx = cleanText.indexOf('{');
-    const endIdx = cleanText.lastIndexOf('}');
-    
-    if (startIdx === -1 || endIdx === -1) {
-      throw new Error(`Could not find JSON object in response. Start: ${startIdx}, End: ${endIdx}`);
-    }
-    
-    const jsonString = cleanText.substring(startIdx, endIdx + 1);
-    console.log(`[AI RESPONSE] Extracted JSON string length: ${jsonString.length}`);
-    
-    const pathData = JSON.parse(jsonString);
-    
-    // Validate it has modules
-    if (!pathData.modules || !Array.isArray(pathData.modules)) {
-      throw new Error(`Expected pathData.modules array but got: ${typeof pathData.modules}`);
-    }
-
-    console.log(`[AI SUCCESS] Generated ${pathData.modules.length} modules for ${decodedTopicName}`);
+    console.log(`[LEARNING PATH SUCCESS] Generated ${pathData.modules.length} modules for ${decodedTopicName}`);
     res.status(200).json(pathData);
 
   } catch (error) {
-    console.error(`[AI FAILED] Using Fallback.`);
-    console.error("Error details:", error.message, error.stack);
-    // Fallback response...
+    console.error(`[LEARNING PATH ERROR]:`, error.message, error.stack);
+    // Fallback response
     res.status(200).json({
       modules: [{
         title: `${decodedTopicName} Essentials`,
         difficulty: difficultyLevel,
-        description: "Core concepts (Fallback mode).",
+        description: "Core concepts and learning resources.",
         resources: [{ name: "MDN Search", url: `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(decodedTopicName)}` }]
       }]
     });

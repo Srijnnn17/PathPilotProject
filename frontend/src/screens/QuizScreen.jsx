@@ -52,13 +52,34 @@ const QuizScreen = () => {
     error: quizError 
   }] = useGenerateQuizMutation();
 
-  // 4. 👇 NEW: Automatically trigger the quiz generation when topic is found
+  // 4. State to control loading animation and delay
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [questionsReady, setQuestionsReady] = useState(false);
+
+  // 5. 👇 NEW: Automatically trigger the quiz generation when topic is found
   useEffect(() => {
     if (topic && topic.name) {
-      // We trigger the mutation manually now
+      // Start initialization process
+      setIsInitializing(true);
+      setQuestionsReady(false);
+      
+      // Trigger the mutation
       generateQuiz(topic.name);
     }
   }, [topic, generateQuiz]);
+
+  // 6. Handle the 3 second delay after questions are loaded
+  useEffect(() => {
+    if (questions && questions.length > 0 && !questionsReady) {
+      // Wait 3 seconds before showing questions
+      const timer = setTimeout(() => {
+        setQuestionsReady(true);
+        setIsInitializing(false);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [questions, questionsReady]);
 
   const [submitQuiz, { isLoading: isSubmitting }] = useSubmitQuizMutation();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -76,6 +97,8 @@ const QuizScreen = () => {
     setSelectedAnswers({});
     setShowResults(false);
     setFinalScore(0);
+    setIsInitializing(true);
+    setQuestionsReady(false);
   }, [topicId]);
 
   const handleAnswerSelect = (option) => {
@@ -136,11 +159,42 @@ const QuizScreen = () => {
   };
 
   // --- LOADING STATES ---
-  if (isLoadingTopics || (isLoadingQuiz && !questions)) {
+  if (isLoadingTopics || isLoadingQuiz || isInitializing || !questionsReady) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0f] text-white pt-20">
-        <Loader />
-        <p className="mt-4 text-slate-400 animate-pulse">Initializing Neural Link...</p>
+        <div className="relative">
+          {/* Animated Loading Spinner */}
+          <div className="w-20 h-20 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-8"></div>
+          
+          {/* Pulsing Glow Effect */}
+          <div className="absolute inset-0 w-20 h-20 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" style={{ animationDuration: '0.8s' }}></div>
+        </div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
+        >
+          <p className="text-xl font-bold text-white mb-2">Initializing Neural Link...</p>
+          <p className="text-slate-400 animate-pulse">
+            {isLoadingQuiz ? 'Generating quiz questions...' : 'Preparing your assessment...'}
+          </p>
+        </motion.div>
+
+        {/* Progress Bar Animation */}
+        <motion.div 
+          className="mt-8 w-64 h-1 bg-white/10 rounded-full overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <motion.div
+            className="h-full bg-gradient-to-r from-indigo-500 to-cyan-500"
+            initial={{ width: '0%' }}
+            animate={{ width: questionsReady ? '100%' : '70%' }}
+            transition={{ duration: 3, ease: 'easeInOut' }}
+          />
+        </motion.div>
       </div>
     );
   }
