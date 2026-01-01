@@ -1,7 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../slices/authSlice.js";
+import { Menu, X, LogOut, LayoutDashboard, BookOpen } from "lucide-react";
+
+// --- CUSTOM "P" LOGO (Always Shining) ---
+const PathPilotLogo = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    {/* Inner fill with gradient - Opacity increased for visibility */}
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" className="opacity-80" stroke="none" fill="url(#logo-gradient)" />
+    {/* Outline strokes */}
+    <path d="M9 7h6a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H9V7z" />
+    <path d="M9 13v8" />
+    <path d="M9 3v4" />
+    <defs>
+      <linearGradient id="logo-gradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#818cf8" /> {/* Indigo-400 */}
+        <stop offset="1" stopColor="#22d3ee" /> {/* Cyan-400 */}
+      </linearGradient>
+    </defs>
+  </svg>
+);
 
 const Header = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -9,6 +28,15 @@ const Header = () => {
   const navigate = useNavigate();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const logoutHandler = () => {
     dispatch(logout());
@@ -16,129 +44,139 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800/90 backdrop-blur-xl border-b border-white/10 shadow-2xl">
-      <nav className="w-full flex items-center justify-between px-4 md:px-10 py-3 md:py-4 h-20">
-        {/* left: logo + main nav */}
-        <div className="flex items-center space-x-6">
-          <Link to="/" className="flex items-center gap-3 group">
-            <span
-              aria-hidden
-              className="inline-flex w-11 h-11 rounded-full bg-gradient-to-tr from-cyan-400 to-indigo-500 shadow-lg ring-2 ring-cyan-400 group-hover:scale-110 group-hover:ring-indigo-400 transition-all duration-300"
-            />
-            <span className="text-3xl md:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-lg group-hover:drop-shadow-2xl transition-all duration-300">
-              PathPilot
-            </span>
-          </Link>
+    <header 
+      className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
+        scrolled 
+          ? "bg-[#0a0a0f]/95 backdrop-blur-md border-white/10 shadow-lg" 
+          : "bg-[#0a0a0f] border-transparent"
+      }`}
+    >
+      <nav className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
+        
+        {/* LEFT: Logo (PERMANENTLY SHINING) */}
+        <Link to="/" className="flex items-center gap-3 group z-50">
+          {/* Updated Classes:
+             1. bg-indigo-600/30 (Brighter background)
+             2. border-indigo-400/50 (Brighter border)
+             3. shadow-[0_0_25px...] (Permanent large glow)
+             4. animate-pulse (Subtle heartbeat effect)
+          */}
+          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-400/50 shadow-[0_0_20px_rgba(99,102,241,0.6)] animate-[pulse_3s_ease-in-out_infinite]">
+            <PathPilotLogo className="w-6 h-6 text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]" />
+          </div>
+          
+          <span className="text-xl md:text-2xl font-bold text-white tracking-tight group-hover:text-indigo-200 transition-colors">
+            PathPilot
+          </span>
+        </Link>
 
-          {/* desktop nav */}
-          <div className="hidden md:flex items-center space-x-6 ml-8">
+        {/* RIGHT: Desktop Nav & Actions */}
+        <div className="hidden md:flex items-center gap-6">
+          
+          {/* Nav Links */}
+          <div className="flex items-center gap-1 mr-4">
             <Link
               to="/topics"
-              className="relative text-white font-semibold px-4 py-2 rounded-md hover:text-cyan-300 transition-colors duration-200 after:content-[''] after:block after:h-0.5 after:bg-gradient-to-r after:from-cyan-400 after:to-indigo-400 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 after:origin-left"
+              className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-all flex items-center gap-2"
             >
+              <BookOpen size={16} />
               Topics
             </Link>
             <Link
               to="/dashboard"
-              className="relative text-white font-semibold px-4 py-2 rounded-md hover:text-cyan-300 transition-colors duration-200 after:content-[''] after:block after:h-0.5 after:bg-gradient-to-r after:from-cyan-400 after:to-indigo-400 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 after:origin-left"
+              className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-all flex items-center gap-2"
             >
+              <LayoutDashboard size={16} />
               Dashboard
             </Link>
           </div>
-        </div>
 
-        {/* right: actions */}
-        <div className="hidden md:flex items-center space-x-4">
-          {/* 👇 This is the corrected conditional block */}
+          <div className="h-6 w-px bg-white/10 mx-2" />
+
           {userInfo ? (
-            <>
-              <span className="text-white font-semibold">Welcome, <span className="text-cyan-300">{userInfo.name}</span></span>
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-bold text-white">{userInfo.name}</span>
               <button
                 onClick={logoutHandler}
-                className="px-4 py-2 rounded-md bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-400 hover:to-pink-400 text-white font-bold shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-pink-300"
-                aria-label="Logout"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 text-red-400 text-sm font-bold hover:bg-red-500/20 transition-all"
               >
-                Logout
+                <LogOut size={16} />
+                <span>Logout</span>
               </button>
-            </>
+            </div>
           ) : (
-            <>
-              <Link to="/login" className="text-white font-semibold hover:text-cyan-300 transition-colors duration-300">
-                Login
+            <div className="flex items-center gap-3">
+              <Link 
+                to="/login" 
+                className="text-sm font-bold text-slate-300 hover:text-white px-3 transition-colors"
+              >
+                Log in
               </Link>
               <Link
                 to="/register"
-                className="bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 text-white px-4 py-2 rounded-md font-semibold flex items-center space-x-2 transition-colors duration-300"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-full hover:bg-indigo-500 hover:shadow-[0_0_15px_rgba(79,70,229,0.4)] transition-all"
               >
-                <span>Sign Up</span>
+                Get Started
               </Link>
-            </>
+            </div>
           )}
         </div>
 
-        {/* mobile menu toggle */}
+        {/* MOBILE TOGGLE */}
         <div className="md:hidden flex items-center">
           <button
             onClick={() => setMobileOpen((s) => !s)}
-            aria-label="Toggle menu"
-            className="p-2 rounded-md bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300"
+            className="p-2 text-slate-300 hover:text-white bg-white/5 rounded-lg border border-white/5"
           >
-            {mobileOpen ? (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
-                <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            ) : (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
-                <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            )}
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </nav>
 
-      {/* mobile dropdown */}
+      {/* MOBILE MENU */}
       {mobileOpen && (
-        <div className="md:hidden w-full bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800/95 border-t border-white/10 backdrop-blur-md shadow-2xl rounded-b-2xl">
-          <div className="px-6 py-6 flex flex-col gap-4">
+        <div className="md:hidden absolute top-20 left-0 w-full bg-[#0a0a0f] border-b border-white/10 shadow-2xl animate-in slide-in-from-top-5">
+          <div className="p-4 flex flex-col gap-2">
             <Link
               to="/topics"
               onClick={() => setMobileOpen(false)}
-              className="text-white font-semibold px-3 py-2 rounded-md hover:bg-white/10 hover:text-cyan-300 transition-colors duration-200"
+              className="p-4 rounded-xl bg-white/5 text-slate-200 font-medium hover:bg-indigo-600/20 hover:text-indigo-300 transition-all flex items-center gap-3"
             >
-              Topics
+              <BookOpen size={18} />
+              Explore Topics
             </Link>
-
             <Link
               to="/dashboard"
               onClick={() => setMobileOpen(false)}
-              className="text-white font-semibold px-3 py-2 rounded-md hover:bg-white/10 hover:text-cyan-300 transition-colors duration-200"
+              className="p-4 rounded-xl bg-white/5 text-slate-200 font-medium hover:bg-indigo-600/20 hover:text-indigo-300 transition-all flex items-center gap-3"
             >
+              <LayoutDashboard size={18} />
               Dashboard
             </Link>
 
+            <div className="h-px w-full bg-white/10 my-2" />
+
             {userInfo ? (
-              <>
-                <div className="text-white font-semibold">Welcome, <span className="text-cyan-300">{userInfo.name}</span></div>
-                <button
-                  onClick={() => { setMobileOpen(false); logoutHandler(); }}
-                  className="w-full text-left px-3 py-2 rounded-md bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-400 hover:to-pink-400 text-white font-bold shadow transition"
-                >
-                  Logout
-                </button>
-              </>
+              <button
+                onClick={() => { setMobileOpen(false); logoutHandler(); }}
+                className="p-4 rounded-xl bg-red-500/10 text-red-400 font-bold flex items-center justify-between"
+              >
+                <span>Logout ({userInfo.name})</span>
+                <LogOut size={18} />
+              </button>
             ) : (
-              <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-2 gap-3 mt-2">
                 <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="px-3 py-2 rounded-md bg-white/10 text-white font-semibold hover:bg-cyan-500/80 hover:text-white transition"
+                  className="py-3 rounded-xl bg-white/5 text-center text-white font-semibold"
                 >
-                  Login
+                  Log in
                 </Link>
                 <Link
                   to="/register"
                   onClick={() => setMobileOpen(false)}
-                  className="px-3 py-2 rounded-md bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 text-white font-bold shadow"
+                  className="py-3 rounded-xl bg-indigo-600 text-center text-white font-bold"
                 >
                   Sign Up
                 </Link>

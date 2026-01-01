@@ -1,154 +1,154 @@
 import asyncHandler from 'express-async-handler';
-import dotenv from 'dotenv';
-import Topic from '../models/topicModel.js';
-import LearningPath from '../models/learningPathModel.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
-/* =======================
-   GEMINI SDK SETUP
-======================= */
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const generateWithGemini = async (prompt) => {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.0-pro' });
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+// --- FALLBACK QUIZ (Standardized to 10 questions) ---
+const getFallbackQuiz = (topicName) => {
+  return Array.from({ length: 10 }).map((_, i) => ({
+    question: `Fallback Question ${i + 1} about ${topicName}: What is a core concept?`,
+    options: ["Abstraction", "Magic", "Chaos", "Entropy"],
+    correctAnswer: "Abstraction"
+  }));
 };
 
-/* =======================
-   FALLBACK DATA
-======================= */
-
-const getFallbackQuiz = (topic) => [
-  {
-    question: `What is a primary feature of ${topic}?`,
-    options: ["Scalability", "Low Latency", "Strict Typing", "Component Based"],
-    correctAnswer: "Component Based"
-  },
-  {
-    question: "Which of the following is NOT a valid data type?",
-    options: ["String", "Boolean", "Float-Array", "Number"],
-    correctAnswer: "Float-Array"
-  },
-  {
-    question: `In ${topic}, what is the correct syntax for a comment?`,
-    options: ["// Comment", "", "# Comment", "/* Comment */"],
-    correctAnswer: "// Comment"
-  },
-  { question: "What represents 'Truth' in binary?", options: ["0", "1", "null", "undefined"], correctAnswer: "1" },
-  { question: "Which complexity is best?", options: ["O(n)", "O(log n)", "O(n^2)", "O(n!)"], correctAnswer: "O(log n)" },
-  { question: "What is the purpose of an API?", options: ["Database", "Interface", "Styling", "Testing"], correctAnswer: "Interface" },
-  { question: "Which is a frontend framework?", options: ["Express", "Django", "React", "Spring"], correctAnswer: "React" },
-  { question: "What does JSON stand for?", options: ["Java Source", "JavaScript Object Notation", "Jupyter Note", "Jumbo Style"], correctAnswer: "JavaScript Object Notation" },
-  { question: "Which keyword defines a constant?", options: ["var", "let", "const", "fixed"], correctAnswer: "const" },
-  { question: "What is an infinite loop?", options: ["A loop that never ends", "A loop that runs once", "A fast loop", "A broken loop"], correctAnswer: "A loop that never ends" }
-];
-
-const getFallbackPath = (topic) => ({
-  modules: [
-    {
-      title: `${topic} Fundamentals`,
-      difficulty: "Beginner",
-      description: `Master the core building blocks of ${topic}.`,
-      resources: [
-        { title: "MDN", url: "https://developer.mozilla.org/en-US/" },
-        { title: "W3Schools", url: "https://www.w3schools.com/" }
-      ]
-    },
-    {
-      title: `Intermediate ${topic}`,
-      difficulty: "Intermediate",
-      description: "Dive deeper into practical usage and patterns.",
-      resources: [
-        { title: "FreeCodeCamp", url: "https://www.freecodecamp.org/" },
-        { title: "MDN Advanced", url: "https://developer.mozilla.org/en-US/" }
-      ]
-    },
-    {
-      title: `Advanced ${topic}`,
-      difficulty: "Advanced",
-      description: "Performance, architecture, and best practices.",
-      resources: [
-        { title: "DevDocs", url: "https://devdocs.io/" },
-        { title: "System Design Primer", url: "https://github.com/donnemartin/system-design-primer" }
-      ]
-    }
-  ]
-});
-
-/* =======================
-   CONTROLLERS
-======================= */
-
+// @desc    Generate 10 Questions (Fixed Count)
 const generateQuiz = asyncHandler(async (req, res) => {
   const { topicName } = req.params;
+  console.log(`[AI START] Generating 10-Question Quiz for: ${topicName}`);
 
   try {
-    const prompt = `Create a 10-question multiple-choice quiz for "${topicName}". Return JSON array only.`;
-    const text = await generateWithGemini(prompt);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const start = text.indexOf('[');
-    const end = text.lastIndexOf(']');
-    if (start === -1 || end === -1) throw new Error('Invalid JSON');
+    const prompt = `
+      You are a Technical Interviewer. 
+      Generate EXACTLY 10 multiple-choice questions for "${topicName}".
+      
+      DIFFICULTY MIX:
+      - 3 Beginner Questions (Basic definitions/syntax)
+      - 4 Intermediate Questions (Common use cases/debugging)
+      - 3 Advanced Questions (Edge cases/performance)
 
-    const quizData = JSON.parse(text.slice(start, end + 1));
+      OUTPUT FORMAT (JSON ARRAY ONLY):
+      [
+        {
+          "question": "Question text here...",
+          "options": ["A", "B", "C", "D"],
+          "correctAnswer": "Correct Option Text"
+        }
+      ]
+    `;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const jsonString = cleanText.substring(cleanText.indexOf('['), cleanText.lastIndexOf(']') + 1);
+    
+    const quizData = JSON.parse(jsonString);
+
+    // Double check we actually got 10
+    if (quizData.length < 10) console.warn(`[AI WARN] Only generated ${quizData.length} questions.`);
+
     res.status(200).json(quizData);
 
-  } catch (err) {
-    console.error('⚠️ Gemini failed, using fallback quiz');
+  } catch (error) {
+    console.error(`[AI FAILED] Switching to Simulation Mode.`);
     res.status(200).json(getFallbackQuiz(topicName));
   }
 });
 
+// @desc    Generate ADAPTIVE Learning Path
 const generateLearningPath = asyncHandler(async (req, res) => {
+  // NOTE: We now expect 'score' and 'total' in the body
   const { topicName } = req.params;
-  const userId = req.user._id;
+  const { score = 0, total = 10 } = req.body; 
 
-  const topic = await Topic.findOne({
-    name: { $regex: new RegExp(`^${topicName}$`, 'i') }
-  });
+  // 1. Calculate Performance
+  const percentage = Math.round((score / total) * 100);
+  let difficultyLevel = 'Beginner';
+  let pathStrategy = '';
+
+  // 2. Define Strategy based on Score
+  if (percentage < 30) {
+    difficultyLevel = 'Beginner / Remedial';
+    pathStrategy = `
+      The user scored ${percentage}% (Low). 
+      They are struggling with the basics.
+      - Focus heavily on FUNDAMENTALS, Syntax, and "Hello World" concepts.
+      - Use simple language.
+      - Do NOT introduce complex frameworks yet.
+    `;
+  } else if (percentage < 70) {
+    difficultyLevel = 'Intermediate';
+    pathStrategy = `
+      The user scored ${percentage}% (Average).
+      They know the basics but need practice.
+      - Focus on real-world patterns, common hooks/methods, and error handling.
+      - Bridge the gap between theory and building apps.
+    `;
+  } else {
+    difficultyLevel = 'Advanced / Expert';
+    pathStrategy = `
+      The user scored ${percentage}% (High).
+      They are already proficient.
+      - Skip the basics completely.
+      - Focus on Performance Optimization, Architecture, Security, and Under-the-hood internals.
+      - Challenge them with complex scenarios.
+    `;
+  }
+
+  console.log(`[AI START] Generating ${difficultyLevel} Path for ${topicName} (Score: ${percentage}%)`);
 
   try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
     const prompt = `
-      Create a learning path for "${topicName}".
-      Return JSON with key "modules".
-      Each module: title, difficulty, description, resources[{title,url}].
+      Create a custom learning path for "${topicName}".
+      
+      USER CONTEXT:
+      ${pathStrategy}
+
+      REQUIREMENTS:
+      1. Create exactly 4 modules tailored to the difficulty level above.
+      2. DIRECT DOCUMENTATION LINKS ONLY (No generic homepages).
+         - Use deep links to MDN, W3Schools, or Official Docs.
+      
+      OUTPUT FORMAT (JSON):
+      {
+        "modules": [
+          {
+            "title": "Module Title",
+            "difficulty": "${difficultyLevel}",
+            "description": "Specific summary...",
+            "resources": [
+              { "name": "Direct Doc Link", "url": "https://..." }
+            ]
+          }
+        ]
+      }
     `;
 
-    const text = await generateWithGemini(prompt);
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const jsonString = cleanText.substring(cleanText.indexOf('{'), cleanText.lastIndexOf('}') + 1);
 
-    const start = text.indexOf('{');
-    const end = text.lastIndexOf('}');
-    if (start === -1 || end === -1) throw new Error('Invalid JSON');
+    res.status(200).json(JSON.parse(jsonString));
 
-    const pathData = JSON.parse(text.slice(start, end + 1));
-
-    if (topic && pathData.modules) {
-      await LearningPath.findOneAndUpdate(
-        { user: userId, topic: topic._id },
-        { modules: pathData.modules },
-        { upsert: true, new: true }
-      );
-    }
-
-    res.status(200).json(pathData);
-
-  } catch (err) {
-    console.error("❌ Gemini Error:", err.message || err);
-
-    const fallback = getFallbackPath(topicName);
-
-    if (topic) {
-      await LearningPath.findOneAndUpdate(
-        { user: userId, topic: topic._id },
-        { modules: fallback.modules },
-        { upsert: true, new: true }
-      );
-    }
-
-    res.status(200).json(fallback);
+  } catch (error) {
+    console.error(`[AI FAILED] Using Fallback.`);
+    // Fallback response...
+    res.status(200).json({
+      modules: [{
+        title: `${topicName} Essentials`,
+        difficulty: difficultyLevel,
+        description: "Core concepts (Fallback mode).",
+        resources: [{ name: "MDN Search", url: `https://developer.mozilla.org/en-US/search?q=${topicName}` }]
+      }]
+    });
   }
 });
 

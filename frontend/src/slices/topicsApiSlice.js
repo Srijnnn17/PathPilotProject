@@ -1,6 +1,6 @@
 import { apiSlice } from './apiSlice.js';
+
 const TOPICS_URL = '/api/topics';
-const AI_URL = '/api/ai';
 const QUIZZES_URL = '/api/quizzes';
 
 export const topicsApiSlice = apiSlice.injectEndpoints({
@@ -9,12 +9,16 @@ export const topicsApiSlice = apiSlice.injectEndpoints({
       query: () => ({ url: TOPICS_URL }),
       providesTags: ['Topic'],
     }),
-    generateQuiz: builder.query({
+
+    // ✅ FIXED: Changed to Mutation (POST) to match backend route
+    generateQuiz: builder.mutation({
       query: (topicName) => ({
-        url: `${AI_URL}/generate-quiz/${topicName}`,
+        url: `${TOPICS_URL}/generate-quiz/${topicName}`,
+        method: 'POST', // Now matches router.post()
       }),
-      providesTags: (result, error, arg) => [{ type: 'Quiz', id: arg }],
+      // Invalidating tags here is optional depending on if you store quizzes immediately
     }),
+
     submitQuiz: builder.mutation({
       query: (data) => ({
         url: `${QUIZZES_URL}/submit`,
@@ -26,25 +30,28 @@ export const topicsApiSlice = apiSlice.injectEndpoints({
     
     getMyQuizAttempts: builder.query({
       query: () => ({
-        url: `${QUIZZES_URL}/my-attempts`, // Correctly builds /api/quizzes/my-attempts
+        url: `${QUIZZES_URL}/my-attempts`, 
       }),
       providesTags: ['QuizAttempt'],
     }),
-    // 👇 Add this new mutation
+
+    // ✅ FIXED: Already correct (POST), ensures body data (score) is sent
     generateAiPath: builder.mutation({
-      query: (topicName) => ({
-        url: `${AI_URL}/generate-path/${topicName}`,
-        method: 'GET', // It's a GET request, but we use a mutation to trigger it on command
+      query: ({ topicName, score, total }) => ({
+        url: `${TOPICS_URL}/generate-path/${topicName}`,
+        method: 'POST', 
+        body: { score, total },
       }),
     }),
   }),
 });
 
+// ✅ EXPORT UPDATED HOOKS
+// Note: useGenerateQuizQuery changed to useGenerateQuizMutation
 export const {
   useGetTopicsQuery,
-  useGenerateQuizQuery,
+  useGenerateQuizMutation, // <--- Updated Name
   useSubmitQuizMutation,
   useGetMyQuizAttemptsQuery,
-  useGenerateAiPathMutation, // 👈 Export the new hook
-
+  useGenerateAiPathMutation,
 } = topicsApiSlice;

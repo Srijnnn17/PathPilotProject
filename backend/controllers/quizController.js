@@ -1,60 +1,8 @@
 import asyncHandler from 'express-async-handler';
-import dotenv from 'dotenv';
 import Topic from '../models/topicModel.js';
 import User from '../models/userModel.js';
 import QuizAttempt from '../models/quizAttemptModel.js';
 import LearningPath from '../models/learningPathModel.js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-dotenv.config();
-
-/* =======================
-   GEMINI SDK SETUP
-======================= */
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-const generateWithGemini = async (prompt) => {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.0-pro' });
-  const result = await model.generateContent(prompt);
-  return result.response.text();
-};
-
-/* =======================
-   FALLBACK LEARNING PATH
-======================= */
-const getFallbackPath = (topicName, skillLevel) => [
-  {
-    title: `${topicName} Fundamentals (${skillLevel})`,
-    difficulty: 'Beginner',
-    description: `A solid introduction to ${topicName} tailored for your ${skillLevel} skill level.`,
-    resources: [
-      { title: "MDN Web Docs", url: "https://developer.mozilla.org/en-US/" },
-      { title: "W3Schools", url: "https://www.w3schools.com/" }
-    ]
-  },
-  {
-    title: `Core Concepts of ${topicName}`,
-    difficulty: 'Intermediate',
-    description: 'Deep dive into the essential logic and structure.',
-    resources: [
-      { title: "FreeCodeCamp", url: "https://www.freecodecamp.org/" },
-      { title: "GeeksForGeeks", url: "https://www.geeksforgeeks.org/" }
-    ]
-  },
-  {
-    title: `Advanced ${topicName} Techniques`,
-    difficulty: 'Advanced',
-    description: 'Mastering performance, security, and best practices.',
-    resources: [
-      { title: "Official Documentation", url: "https://devdocs.io/" },
-      { title: "YouTube Crash Course", url: "https://www.youtube.com/" }
-    ]
-  }
-];
-
-/* =======================
-   CONTROLLERS
-======================= */
 
 // @desc    Get all topics
 // @route   GET /api/topics
@@ -64,7 +12,7 @@ const getTopics = asyncHandler(async (req, res) => {
   res.status(200).json(topics);
 });
 
-// @desc    Submit quiz, update skill, generate learning path
+// @desc    Submit a quiz attempt, update skill, and generate learning path
 // @route   POST /api/quizzes/submit
 // @access  Private
 const submitQuiz = asyncHandler(async (req, res) => {
@@ -82,94 +30,72 @@ const submitQuiz = asyncHandler(async (req, res) => {
     throw new Error('Topic not found');
   }
 
-  /* ---------- SCORE ---------- */
+  // --- Calculate Score ---
   let score = 0;
-  questions.forEach((q) => {
-    const userResponse = responses.find((r) => r.question === q.question);
-    if (userResponse && userResponse.userAnswer === q.correctAnswer) {
+  questions.forEach((question) => {
+    const userResponse = responses.find(res => res.question === question.question);
+    if (userResponse && userResponse.userAnswer === question.correctAnswer) {
       score++;
     }
   });
 
+  // --- Determine Skill Level ---
   const percentage = (score / questions.length) * 100;
-  let skillLevel =
-    percentage < 40 ? 'Beginner' :
-    percentage < 75 ? 'Intermediate' :
-    'Advanced';
+  let skillLevel;
+  if (percentage < 40) {
+    skillLevel = 'Beginner';
+  } else if (percentage < 75) {
+    skillLevel = 'Intermediate';
+  } else {
+    skillLevel = 'Advanced';
+  }
 
-  /* ---------- UPDATE USER SKILL ---------- */
+  // --- Update User's Skill ---
+  // Use topic._id as the key to avoid "." issues
   const user = await User.findById(userId);
   if (user) {
     user.skills.set(topic._id.toString(), skillLevel);
     await user.save();
   }
 
-  /* ---------- AI LEARNING PATH ---------- */
-  let aiGeneratedModules = [];
-
-  try {
-    const prompt = `
-      Create a learning path for "${topicName}".
-      User skill level: ${skillLevel}.
-      Output STRICT JSON only with key "modules".
-
-      Each module:
-      - title
-      - difficulty
-      - description
-      - resources: [{ "title", "url" }]
-
-      Use MDN and W3Schools.
-    `;
-
-    const text = await generateWithGemini(prompt);
-
-    const start = text.indexOf('{');
-    const end = text.lastIndexOf('}');
-    if (start === -1 || end === -1) {
-      throw new Error('Invalid JSON from Gemini');
-    }
-
-    const parsed = JSON.parse(text.slice(start, end + 1));
-    if (parsed.modules) aiGeneratedModules = parsed.modules;
-
-  } catch (err) {
-    console.error("❌ Gemini Error:", err.message || err);
-    aiGeneratedModules = getFallbackPath(topicName, skillLevel);
-  }
-
-  /* ---------- SAVE LEARNING PATH ---------- */
+  // --- Generate a Simple Learning Path ---
+  const modules = [
+    { title: `${topicName} Fundamentals`, difficulty: 'Beginner' },
+    { title: `Intermediate ${topicName}`, difficulty: 'Intermediate' },
+    { title: `Advanced ${topicName} Concepts`, difficulty: 'Advanced' },
+  ];
+  
   await LearningPath.findOneAndUpdate(
     { user: userId, topic: topic._id },
-    { user: userId, topic: topic._id, modules: aiGeneratedModules },
-    { upsert: true, new: true }
+    { 
+      user: userId,
+      topic: topic._id,
+      modules: modules
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
-  /* ---------- SAVE QUIZ ATTEMPT ---------- */
+  // --- Save Quiz Attempt ---
   const attempt = await QuizAttempt.create({
     user: userId,
     topic: topic._id,
     topicName,
     score,
     totalQuestions: questions.length,
-    responses: questions.map((q) => ({
+    responses: questions.map(q => ({
       ...q,
-      userAnswer:
-        responses.find((r) => r.question === q.question)?.userAnswer || null,
+      userAnswer: responses.find(res => res.question === q.question)?.userAnswer || null,
     })),
   });
 
   res.status(201).json({ attempt, skillLevel });
 });
 
-// @desc    Get logged-in user's attempts
+// @desc    Get logged in user's quiz attempts
 // @route   GET /api/quizzes/my-attempts
 // @access  Private
 const getMyQuizAttempts = asyncHandler(async (req, res) => {
-  const attempts = await QuizAttempt
-    .find({ user: req.user._id })
-    .populate('topic', 'name');
-
+  const attempts = await QuizAttempt.find({ user: req.user._id }).populate('topic', 'name');
   res.status(200).json(attempts);
 });
 

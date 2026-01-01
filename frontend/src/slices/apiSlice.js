@@ -28,4 +28,3 @@ export const apiSlice = createApi({
   // Endpoints are defined in other files using `injectEndpoints`
   endpoints: (builder) => ({}),
 });
-

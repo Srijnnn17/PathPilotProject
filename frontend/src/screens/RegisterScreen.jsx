@@ -5,6 +5,8 @@ import { useRegisterMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
+import { User, Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
+import Loader from "../components/Loader";
 
 const RegisterScreen = () => {
   const dispatch = useDispatch();
@@ -46,116 +48,143 @@ const RegisterScreen = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-start justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-800 px-4 pt-24">
-      {/* Background accents */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-500/40 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-[-120px] right-[-120px] w-[32rem] h-[32rem] bg-indigo-500/40 rounded-full blur-3xl animate-pulse delay-700" />
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] text-white font-sans selection:bg-indigo-500/30 relative overflow-hidden pt-24 pb-12">
+      
+      {/* 1. BACKGROUND EFFECTS */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+        <div className="absolute bottom-0 right-0 w-full h-full bg-indigo-900/10 blur-[120px]" />
+      </div>
 
-      {/* Glassmorphic Card */}
+      {/* 2. MAIN CARD */}
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative backdrop-blur-xl bg-white/10 shadow-2xl rounded-2xl px-8 md:px-12 py-12 w-full max-w-md text-center border-t border-white/20 max-h-[calc(100vh-6rem)] overflow-hidden"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="relative z-10 w-full max-w-md px-6"
       >
-        {/* Heading */}
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="text-4xl md:text-5xl font-extrabold text-white drop-shadow-lg"
-        >
-          Create{" "}
-          <span className="bg-gradient-to-r from-cyan-300 to-indigo-400 bg-clip-text text-transparent">
-            Account
-          </span>
-        </motion.h2>
+        <div className="bg-[#111116] border border-white/10 rounded-3xl p-8 md:p-10 shadow-2xl shadow-indigo-500/10 backdrop-blur-xl">
+          
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 mb-4 border border-indigo-500/20">
+              <Sparkles size={20} />
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
+            <p className="text-slate-400 text-sm">
+              Join PathPilot today and start your <br/> personalized learning journey.
+            </p>
+          </div>
 
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="mt-3 text-gray-200 text-lg"
-        >
-          Join PathPilot today 🚀
-        </motion.p>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            
+            {/* Name Input */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300 ml-1">Full Name</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                  <User size={18} />
+                </div>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                />
+              </div>
+            </div>
 
-        {/* Form */}
-        <motion.form
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.6, duration: 0.6 }}
-          onSubmit={handleSubmit}
-          className="mt-8 flex flex-col space-y-4"
-        >
-          <input
-            type="text"
-            name="name"
-            placeholder="Your Name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="px-4 py-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-gray-300 
-                       focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email Address"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="px-4 py-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-gray-300 
-                       focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Create Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            className="px-4 py-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-gray-300 
-                       focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200"
-          />
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm Password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-            className="px-4 py-3 rounded-md bg-white/20 border border-white/30 text-white placeholder-gray-300 
-                       focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all duration-200"
-          />
+            {/* Email Input */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300 ml-1">Email Address</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                  <Mail size={18} />
+                </div>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="name@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                />
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="mt-4 bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 
-                       text-white font-bold py-3 px-10 rounded-md shadow-lg transition-transform transform hover:scale-105 
-                       focus:outline-none focus:ring-4 focus:ring-indigo-300 disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            Register
-          </button>
-        </motion.form>
+            {/* Password Input */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300 ml-1">Password</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                  <Lock size={18} />
+                </div>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Create a password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                />
+              </div>
+            </div>
 
-        {/* Login Link */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-6 text-gray-300"
-        >
-          Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-cyan-400 font-semibold hover:underline"
-          >
-            Sign In
-          </Link>
-        </motion.p>
+            {/* Confirm Password Input */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300 ml-1">Confirm Password</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                  <Lock size={18} />
+                </div>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  placeholder="Repeat password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                />
+              </div>
+            </div>
+
+            {isLoading && (
+              <div className="flex justify-center py-2">
+                <Loader />
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/25 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
+            >
+              <span>Create Account</span>
+              <ArrowRight size={18} />
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="mt-8 pt-6 border-t border-white/10 text-center">
+            <p className="text-slate-400 text-sm">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="text-indigo-400 font-semibold hover:text-indigo-300 hover:underline transition-all"
+              >
+                Sign In
+              </Link>
+            </p>
+          </div>
+
+        </div>
       </motion.div>
     </div>
   );
