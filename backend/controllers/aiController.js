@@ -2,11 +2,25 @@ import asyncHandler from 'express-async-handler';
 import dotenv from 'dotenv';
 import Topic from '../models/topicModel.js';
 import LearningPath from '../models/learningPathModel.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 dotenv.config();
 
-// --- 1. THE SAFETY NET (Fallback Data) ---
-// If AI fails, we use this so the app works for the demo
+/* =======================
+   GEMINI SDK SETUP
+======================= */
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+const generateWithGemini = async (prompt) => {
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.0-pro' });
+  const result = await model.generateContent(prompt);
+  return result.response.text();
+};
+
+/* =======================
+   FALLBACK DATA
+======================= */
+
 const getFallbackQuiz = (topic) => [
   {
     question: `What is a primary feature of ${topic}?`,
@@ -23,7 +37,6 @@ const getFallbackQuiz = (topic) => [
     options: ["// Comment", "", "# Comment", "/* Comment */"],
     correctAnswer: "// Comment"
   },
-  // Add 7 more generic questions if needed, but 3 is enough to show functionality
   { question: "What represents 'Truth' in binary?", options: ["0", "1", "null", "undefined"], correctAnswer: "1" },
   { question: "Which complexity is best?", options: ["O(n)", "O(log n)", "O(n^2)", "O(n!)"], correctAnswer: "O(log n)" },
   { question: "What is the purpose of an API?", options: ["Database", "Interface", "Styling", "Testing"], correctAnswer: "Interface" },
@@ -38,140 +51,104 @@ const getFallbackPath = (topic) => ({
     {
       title: `${topic} Fundamentals`,
       difficulty: "Beginner",
-      description: `Master the core building blocks of ${topic}. You will learn syntax, basic structures, and how to set up your first environment.`,
+      description: `Master the core building blocks of ${topic}.`,
       resources: [
-        { title: "MDN - Getting Started", url: "https://developer.mozilla.org/en-US/" },
-        { title: "W3Schools - Tutorial", url: "https://www.w3schools.com/" }
+        { title: "MDN", url: "https://developer.mozilla.org/en-US/" },
+        { title: "W3Schools", url: "https://www.w3schools.com/" }
       ]
     },
     {
-      title: `Intermediate ${topic} Logic`,
+      title: `Intermediate ${topic}`,
       difficulty: "Intermediate",
-      description: "Dive deeper into control flow, data management, and common patterns used in professional development.",
+      description: "Dive deeper into practical usage and patterns.",
       resources: [
-        { title: "MDN - Advanced Guides", url: "https://developer.mozilla.org/en-US/" },
-        { title: "FreeCodeCamp - Full Course", url: "https://www.freecodecamp.org/" }
+        { title: "FreeCodeCamp", url: "https://www.freecodecamp.org/" },
+        { title: "MDN Advanced", url: "https://developer.mozilla.org/en-US/" }
       ]
     },
     {
-      title: `Advanced ${topic} Architecture`,
+      title: `Advanced ${topic}`,
       difficulty: "Advanced",
-      description: "Learn about performance optimization, security best practices, and enterprise-level architecture.",
+      description: "Performance, architecture, and best practices.",
       resources: [
-        { title: "Official Documentation", url: "https://devdocs.io/" },
+        { title: "DevDocs", url: "https://devdocs.io/" },
         { title: "System Design Primer", url: "https://github.com/donnemartin/system-design-primer" }
       ]
     }
   ]
 });
 
-// --- 2. THE AI CALLER ---
-const callGeminiDirectly = async (prompt) => {
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=${apiKey}`;
-
-  console.log("🤖 Asking Gemini...");
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [{ text: prompt }]
-        }
-      ]
-    })
-  });
-
-  if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.error?.message || "Gemini API Error");
-  }
-
-  const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text;
-};
-
-
-
-// --- 3. CONTROLLERS ---
+/* =======================
+   CONTROLLERS
+======================= */
 
 const generateQuiz = asyncHandler(async (req, res) => {
   const { topicName } = req.params;
-  
+
   try {
-    const prompt = `Create a 10-question multiple-choice quiz for "${topicName}". JSON format only.`;
-    const text = await callGeminiDirectly(prompt);
-    
-    // Extract JSON
+    const prompt = `Create a 10-question multiple-choice quiz for "${topicName}". Return JSON array only.`;
+    const text = await generateWithGemini(prompt);
+
     const start = text.indexOf('[');
     const end = text.lastIndexOf(']');
-    if (start === -1) throw new Error("Invalid JSON");
-    const quizData = JSON.parse(text.substring(start, end + 1));
+    if (start === -1 || end === -1) throw new Error('Invalid JSON');
 
+    const quizData = JSON.parse(text.slice(start, end + 1));
     res.status(200).json(quizData);
 
-  } catch (error) {
-    console.error(`⚠️ AI Failed (${error.message}). Switching to Backup Mode.`);
-    // FAILSAFE: Return mock data instead of error
+  } catch (err) {
+    console.error('⚠️ Gemini failed, using fallback quiz');
     res.status(200).json(getFallbackQuiz(topicName));
   }
 });
 
 const generateLearningPath = asyncHandler(async (req, res) => {
   const { topicName } = req.params;
-  const userId = req.user._id; 
+  const userId = req.user._id;
 
-  const topic = await Topic.findOne({ name: { $regex: new RegExp(`^${topicName}$`, 'i') } });
+  const topic = await Topic.findOne({
+    name: { $regex: new RegExp(`^${topicName}$`, 'i') }
+  });
 
   try {
     const prompt = `
       Create a learning path for "${topicName}".
-      JSON format with "modules" array.
-      Each module has "title", "difficulty", "description" (2 sentences), and "resources" (2 links with "title" and "url").
-      Prioritize MDN/W3Schools.
+      Return JSON with key "modules".
+      Each module: title, difficulty, description, resources[{title,url}].
     `;
-    
-    const text = await callGeminiDirectly(prompt);
-    
-    // Extract JSON
+
+    const text = await generateWithGemini(prompt);
+
     const start = text.indexOf('{');
     const end = text.lastIndexOf('}');
-    if (start === -1) throw new Error("Invalid JSON");
-    const pathData = JSON.parse(text.substring(start, end + 1));
+    if (start === -1 || end === -1) throw new Error('Invalid JSON');
 
-    // Save Real Data
+    const pathData = JSON.parse(text.slice(start, end + 1));
+
     if (topic && pathData.modules) {
-        await LearningPath.findOneAndUpdate(
-            { user: userId, topic: topic._id },
-            { modules: pathData.modules },
-            { upsert: true, new: true }
-        );
-        console.log("💾 Saved AI Path to DB");
+      await LearningPath.findOneAndUpdate(
+        { user: userId, topic: topic._id },
+        { modules: pathData.modules },
+        { upsert: true, new: true }
+      );
     }
+
     res.status(200).json(pathData);
 
-  } catch (error) {
-    console.error(`⚠️ AI Failed (${error.message}). Switching to Backup Mode.`);
-    
-    // FAILSAFE: Return mock data
-    const mockData = getFallbackPath(topicName);
-    
-    // Even save the mock data to DB so it persists!
+  } catch (err) {
+    console.error("❌ Gemini Error:", err.message || err);
+
+    const fallback = getFallbackPath(topicName);
+
     if (topic) {
-        await LearningPath.findOneAndUpdate(
-            { user: userId, topic: topic._id },
-            { modules: mockData.modules },
-            { upsert: true, new: true }
-        );
-        console.log("💾 Saved BACKUP Path to DB");
+      await LearningPath.findOneAndUpdate(
+        { user: userId, topic: topic._id },
+        { modules: fallback.modules },
+        { upsert: true, new: true }
+      );
     }
-    
-    res.status(200).json(mockData);
+
+    res.status(200).json(fallback);
   }
 });
 
