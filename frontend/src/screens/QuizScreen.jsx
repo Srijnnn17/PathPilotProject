@@ -100,15 +100,22 @@ const QuizScreen = () => {
         userAnswer: selectedAnswers[questionText],
       }));
 
-      if (!topicId.startsWith('demo-')) {
-         await submitQuiz({ topicName: topic.name, responses, questions }).unwrap();
+      // Only submit to backend if it's a real topic (not demo)
+      if (!topicId.startsWith('demo-') && topic && topic.name) {
+        try {
+          await submitQuiz({ topicName: topic.name, responses, questions }).unwrap();
+          console.log('Quiz submitted successfully');
+        } catch (submitError) {
+          console.error('Quiz submission error:', submitError);
+          // Still show results even if submission fails
+        }
       }
       
       setFinalScore(localScore);
       setShowResults(true);
 
     } catch (err) {
-      console.warn("Submit failed (likely network or demo), showing local score");
+      console.error("Quiz submission error:", err);
       setFinalScore(localScore);
       setShowResults(true);
     }

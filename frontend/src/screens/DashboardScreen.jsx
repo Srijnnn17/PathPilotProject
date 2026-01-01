@@ -37,7 +37,7 @@ const DashboardScreen = () => {
   const { data: attempts, isLoading, error } = useGetMyQuizAttemptsQuery();
 
   // Helper to calculate total stats
-  const totalQuizzes = attempts ? attempts.length : 0;
+  const totalQuizzes = attempts && Array.isArray(attempts) ? attempts.length : 0;
   const averageScoreVal = attempts && attempts.length > 0
     ? Math.round(attempts.reduce((acc, curr) => acc + (curr.score / curr.totalQuestions) * 100, 0) / attempts.length)
     : 0;
@@ -129,7 +129,7 @@ const DashboardScreen = () => {
             </div>
 
             {/* 3. QUIZ CARDS GRID */}
-            {attempts.length === 0 ? (
+            {!attempts || !Array.isArray(attempts) || attempts.length === 0 ? (
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-24 px-8 bg-[#111116] border border-dashed border-white/10 rounded-[3rem] relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent" />
                 <div className="relative z-10">

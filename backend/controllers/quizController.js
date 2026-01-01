@@ -4,14 +4,6 @@ import User from '../models/userModel.js';
 import QuizAttempt from '../models/quizAttemptModel.js';
 import LearningPath from '../models/learningPathModel.js';
 
-// @desc    Get all topics
-// @route   GET /api/topics
-// @access  Private
-const getTopics = asyncHandler(async (req, res) => {
-  const topics = await Topic.find({});
-  res.status(200).json(topics);
-});
-
 // @desc    Submit a quiz attempt, update skill, and generate learning path
 // @route   POST /api/quizzes/submit
 // @access  Private
@@ -19,15 +11,30 @@ const submitQuiz = asyncHandler(async (req, res) => {
   const { topicName, responses, questions } = req.body;
   const userId = req.user._id;
 
+  console.log('[QUIZ SUBMIT] Received submission:', { topicName, userId, responsesCount: responses?.length, questionsCount: questions?.length });
+
   if (!topicName || !responses || !questions) {
+    console.error('[QUIZ SUBMIT] Missing required data:', { topicName: !!topicName, responses: !!responses, questions: !!questions });
     res.status(400);
     throw new Error('Missing required quiz data');
   }
 
-  const topic = await Topic.findOne({ name: topicName });
+  // Try to find topic by exact name match first
+  let topic = await Topic.findOne({ name: topicName });
+  
+  // If not found, try case-insensitive search
   if (!topic) {
-    res.status(404);
-    throw new Error('Topic not found');
+    topic = await Topic.findOne({ name: { $regex: new RegExp(`^${topicName}$`, 'i') } });
+  }
+
+  // If still not found, create it (this ensures quiz can be saved even if topic wasn't seeded)
+  if (!topic) {
+    console.log(`[QUIZ SUBMIT] Topic "${topicName}" not found, creating it...`);
+    topic = await Topic.create({
+      name: topicName,
+      description: `Quiz questions for ${topicName}`
+    });
+    console.log(`[QUIZ SUBMIT] Created topic:`, topic._id);
   }
 
   // --- Calculate Score ---
@@ -76,27 +83,35 @@ const submitQuiz = asyncHandler(async (req, res) => {
   );
 
   // --- Save Quiz Attempt ---
-  const attempt = await QuizAttempt.create({
-    user: userId,
-    topic: topic._id,
-    topicName,
-    score,
-    totalQuestions: questions.length,
-    responses: questions.map(q => ({
-      ...q,
-      userAnswer: responses.find(res => res.question === q.question)?.userAnswer || null,
-    })),
-  });
+  try {
+    const attempt = await QuizAttempt.create({
+      user: userId,
+      topic: topic._id,
+      topicName,
+      score,
+      totalQuestions: questions.length,
+      responses: questions.map(q => ({
+        ...q,
+        userAnswer: responses.find(res => res.question === q.question)?.userAnswer || null,
+      })),
+    });
 
-  res.status(201).json({ attempt, skillLevel });
+    console.log(`[QUIZ SUBMIT] Successfully saved quiz attempt:`, attempt._id);
+    res.status(201).json({ attempt, skillLevel });
+  } catch (dbError) {
+    console.error('[QUIZ SUBMIT] Database error saving attempt:', dbError);
+    throw dbError;
+  }
 });
 
 // @desc    Get logged in user's quiz attempts
 // @route   GET /api/quizzes/my-attempts
 // @access  Private
 const getMyQuizAttempts = asyncHandler(async (req, res) => {
-  const attempts = await QuizAttempt.find({ user: req.user._id }).populate('topic', 'name');
+  const attempts = await QuizAttempt.find({ user: req.user._id })
+    .populate('topic', 'name')
+    .sort({ createdAt: -1 }); // Most recent first
   res.status(200).json(attempts);
 });
 
-export { getTopics, submitQuiz, getMyQuizAttempts };
+export { submitQuiz, getMyQuizAttempts };
