@@ -78,10 +78,44 @@ connectDB();
 const app = express();
 
 // --- CORS CONFIGURATION ---
+// Allow both production Vercel URL and local development URLs
+const allowedOrigins = [
+  'https://path-pilot-rose.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+];
+
+// If FRONTEND_URL is set in environment, add it to allowed origins
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://path-pilot-rose.vercel.app' 
-    : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+  origin: function (origin, callback) {
+    // In development, allow all localhost origins for easier development
+    if (process.env.NODE_ENV !== 'production') {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) {
+        return callback(null, true);
+      }
+      // Allow any localhost or 127.0.0.1 origin in development
+      if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        return callback(null, true);
+      }
+    }
+    
+    // In production, only allow specific origins
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 };
 app.use(cors(corsOptions));
