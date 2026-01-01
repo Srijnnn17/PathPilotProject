@@ -108,7 +108,13 @@ const corsOptions = {
       }
     }
     
-    // In production, only allow specific origins
+    // In production, allow all Vercel domains (preview and production)
+    // Vercel uses *.vercel.app for preview deployments
+    if (origin && origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Also check against specific allowed origins
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
