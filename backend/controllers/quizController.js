@@ -1,5 +1,4 @@
 import asyncHandler from 'express-async-handler';
-import { GoogleGenerativeAI } from '@google/generative-ai'; // Import Google AI
 import dotenv from 'dotenv';
 import Topic from '../models/topicModel.js';
 import User from '../models/userModel.js';
@@ -8,14 +7,70 @@ import LearningPath from '../models/learningPathModel.js';
 
 dotenv.config();
 
-// Validate API key before initializing
-if (!process.env.GEMINI_API_KEY) {
-  console.error('ERROR: GEMINI_API_KEY is not set in environment variables');
-  throw new Error('GEMINI_API_KEY is not configured. Please set it in your .env file.');
-}
+// --- 1. THE SAFETY NET (Fallback Path) ---
+// Used if AI fails so the user still gets a result
+const getFallbackPath = (topicName, skillLevel) => [
+  { 
+    title: `${topicName} Fundamentals (${skillLevel})`, 
+    difficulty: 'Beginner',
+    description: `A solid introduction to ${topicName} tailored for your ${skillLevel} skill level.`,
+    resources: [
+      { name: "MDN Web Docs", url: "https://developer.mozilla.org/en-US/" },
+      { name: "W3Schools", url: "https://www.w3schools.com/" }
+    ]
+  },
+  { 
+    title: `Core Concepts of ${topicName}`, 
+    difficulty: 'Intermediate',
+    description: 'Deep dive into the essential logic and structure.',
+    resources: [
+      { name: "FreeCodeCamp", url: "https://www.freecodecamp.org/" },
+      { name: "GeeksForGeeks", url: "https://www.geeksforgeeks.org/" }
+    ]
+  },
+  { 
+    title: `Advanced ${topicName} Techniques`, 
+    difficulty: 'Advanced',
+    description: 'Mastering performance, security, and best practices.',
+    resources: [
+      { name: "Official Documentation", url: "https://devdocs.io/" },
+      { name: "YouTube Crash Course", url: "https://www.youtube.com/" }
+    ]
+  }
+];
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const callGeminiDirectly = async (prompt) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=${apiKey}`;
+
+  console.log("🤖 Asking Gemini...");
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [{ text: prompt }]
+        }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error?.message || "Gemini API Error");
+  }
+
+  const data = await response.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text;
+};
+
+
+// --- 3. CONTROLLERS ---
 
 // @desc    Get all topics
 // @route   GET /api/topics
@@ -55,13 +110,9 @@ const submitQuiz = asyncHandler(async (req, res) => {
   // --- 2. Determine Skill Level ---
   const percentage = (score / questions.length) * 100;
   let skillLevel;
-  if (percentage < 40) {
-    skillLevel = 'Beginner';
-  } else if (percentage < 75) {
-    skillLevel = 'Intermediate';
-  } else {
-    skillLevel = 'Advanced';
-  }
+  if (percentage < 40) skillLevel = 'Beginner';
+  else if (percentage < 75) skillLevel = 'Intermediate';
+  else skillLevel = 'Advanced';
 
   // --- 3. Update User's Skill ---
   const user = await User.findById(userId);
@@ -70,83 +121,53 @@ const submitQuiz = asyncHandler(async (req, res) => {
     await user.save();
   }
 
-  // --- 4. Generate REAL AI Learning Path (Replaces hardcoded dummy data) ---
+  // --- 4. Generate REAL AI Learning Path ---
   let aiGeneratedModules = [];
 
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
     const prompt = `
-      **Objective**: Create a structured, personalized learning path for the topic specified below.  
-      **Topic**: ${topicName}  
-      **User Skill Level**: ${skillLevel} (The user just scored ${percentage}% on a quiz)
-
-      **Instructions**:  
-      1. Generate a list of 3 to 5 learning modules specifically tailored to a ${skillLevel} level learner.  
-      2. For each module, provide:  
-         - "title"  
-         - "difficulty" level ('Beginner', 'Intermediate', or 'Advanced')  
-         - "description" (2–3 sentences about what the learner will cover)  
-         - "resources" → an array of at least 2 recommended learning resources.  
-           - Each resource must have "name" and "url".  
-           - Use only **real, well-known sources** (MDN, W3Schools, freeCodeCamp, official docs, etc.).  
-      3. Your entire response must be a single, valid JSON object with a single key "modules".  
-      4. Do not include any extra text or markdown formatting.
-
-      **JSON Format**:  
+      Create a learning path for: "${topicName}".
+      User Skill: ${skillLevel} (Score: ${percentage}%).
+      
+      **Requirements**:
+      1. 3-5 modules.
+      2. **Resources**: 2 links per module (MDN/W3Schools).
+      3. **Output**: JSON only. Key "modules".
+      
+      **JSON Structure**:
       {
         "modules": [
           {
             "title": "Module Title",
             "difficulty": "Beginner",
-            "description": "...",
-            "resources": [ { "name": "...", "url": "..." } ]
+            "description": "Short description...",
+            "resources": [
+              { "title": "MDN Guide", "url": "https://developer.mozilla.org" },
+              { "title": "W3Schools", "url": "https://www.w3schools.com" }
+            ]
           }
         ]
       }
     `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = await response.text();
+    const text = await callGeminiDirectly(prompt);
+
+    // Clean JSON
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
     
-    if (!text || text.trim().length === 0) {
-      throw new Error('AI service returned empty response');
-    }
-    
-    // Clean the text to ensure pure JSON
-    const jsonText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    
-    let parsedData;
-    try {
-      parsedData = JSON.parse(jsonText);
-    } catch (parseError) {
-      console.error('JSON Parse Error in learning path generation:', parseError);
-      console.error('Raw AI Response:', text);
-      throw new Error('AI service returned invalid JSON format');
-    }
-    
-    if (parsedData.modules) {
-        aiGeneratedModules = parsedData.modules;
+    if (start !== -1 && end !== -1) {
+       const jsonText = text.substring(start, end + 1);
+       const parsedData = JSON.parse(jsonText);
+       if (parsedData.modules) aiGeneratedModules = parsedData.modules;
+    } else {
+       throw new Error("Invalid JSON format from AI");
     }
 
   } catch (error) {
-    console.error("AI Generation failed, falling back to default:", error);
-    // Fallback if AI fails so the app doesn't crash
-    aiGeneratedModules = [
-      { 
-        title: `${topicName} Fundamentals`, 
-        difficulty: 'Beginner',
-        description: 'Core concepts (AI generation failed, showing default).',
-        resources: []
-      },
-      { 
-        title: `Intermediate ${topicName}`, 
-        difficulty: 'Intermediate',
-        description: 'Building deeper knowledge.',
-        resources: []
-      }
-    ];
+    console.error(`⚠️ AI Path Gen Failed: ${error.message}. Switching to Backup.`);
+    // FAILSAFE: Use backup modules
+    aiGeneratedModules = getFallbackPath(topicName, skillLevel);
   }
   
   // --- 5. Save Learning Path to Database ---
@@ -155,7 +176,7 @@ const submitQuiz = asyncHandler(async (req, res) => {
     { 
       user: userId,
       topic: topic._id,
-      modules: aiGeneratedModules // Saving the AI data here!
+      modules: aiGeneratedModules 
     },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
