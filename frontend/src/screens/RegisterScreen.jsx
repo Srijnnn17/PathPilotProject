@@ -43,7 +43,14 @@ const RegisterScreen = () => {
       dispatch(setCredentials({ ...res }));
       navigate("/");
     } catch (err) {
-      toast.error(err?.data?.message || err.error);
+      // Better error handling for network/CORS errors
+      if (err?.status === 'FETCH_ERROR' || err?.error === 'Failed to fetch') {
+        toast.error('Network error: Unable to connect to server. Please check your connection.');
+      } else if (err?.status === 'CORS_ERROR') {
+        toast.error('CORS error: Please contact support.');
+      } else {
+        toast.error(err?.data?.message || err?.error || 'Registration failed. Please try again.');
+      }
     }
   };
 
