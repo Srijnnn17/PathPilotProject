@@ -1,34 +1,44 @@
 import asyncHandler from 'express-async-handler';
-// If you do not have a Topic model yet, this ensures the server still starts.
-// If you DO have '../models/topicModel.js', uncomment the import below:
-// import Topic from '../models/topicModel.js'; 
+import Topic from '../models/topicModel.js'; 
 
 // @desc    Get all topics
 // @route   GET /api/topics
 // @access  Private
 const getAllTopics = asyncHandler(async (req, res) => {
-  // mocked response to prevent crashes if DB isn't set up yet
-  res.status(200).json([
-    { _id: '1', name: 'JavaScript' }, 
-    { _id: '2', name: 'React' },
-    { _id: '3', name: 'Node.js' }
-  ]);
-  
-  // REAL CODE (Uncomment if you have the model):
-  // const topics = await Topic.find({});
-  // res.json(topics);
+  try {
+    const topics = await Topic.find({});
+    res.status(200).json(topics);
+  } catch (error) {
+    // If database is not connected, return empty array instead of crashing
+    console.warn('Topics fetch failed (DB may not be connected):', error.message);
+    res.status(200).json([]);
+  }
 });
 
 // @desc    Create a topic
 // @route   POST /api/topics
 // @access  Private
 const createTopic = asyncHandler(async (req, res) => {
-  res.status(201).json({ message: "Topic Created (Mock)" });
+  const { name, description } = req.body;
 
-  // REAL CODE (Uncomment if you have the model):
-  // const { name } = req.body;
-  // const topic = await Topic.create({ name });
-  // res.status(201).json(topic);
+  if (!name) {
+    res.status(400);
+    throw new Error('Topic name is required');
+  }
+
+  // Check if topic already exists
+  const existingTopic = await Topic.findOne({ name });
+  if (existingTopic) {
+    res.status(400);
+    throw new Error('Topic already exists');
+  }
+
+  const topic = await Topic.create({ 
+    name, 
+    description: description || `Learn ${name}` 
+  });
+  
+  res.status(201).json(topic);
 });
 
 export { getAllTopics, createTopic };

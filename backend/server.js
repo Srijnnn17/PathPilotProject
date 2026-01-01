@@ -60,7 +60,6 @@ import connectDB from './config/db.js';
 import userRoutes from './routes/userRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
 import topicRoutes from './routes/topicRoutes.js';
-import aiRoutes from './routes/aiRoutes.js';
 import learningPathRoutes from './routes/learningPathRoutes.js';
 
 
@@ -98,7 +97,6 @@ app.use(cookieParser());
 app.use('/api/users', userRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/topics', topicRoutes);
-app.use('/api/ai', aiRoutes);
 app.use('/api/learning-paths', learningPathRoutes);
 
 

@@ -189,7 +189,7 @@ const DashboardScreen = () => {
                           </div>
 
                           <Link 
-                            to={`/generate-path/${attempt.topic?.name || attempt.topicName}`}
+                            to={`/generate-path/${encodeURIComponent(attempt.topic?.name || attempt.topicName)}`}
                             className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider py-2.5 px-5 rounded-full transition-all ${
                               !attempt.topic 
                                 ? 'opacity-50 cursor-not-allowed bg-slate-800/50 text-slate-500' 

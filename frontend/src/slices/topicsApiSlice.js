@@ -11,9 +11,10 @@ export const topicsApiSlice = apiSlice.injectEndpoints({
     }),
 
     // ✅ FIXED: Changed to Mutation (POST) to match backend route
+    // ✅ FIXED: URL-encode topicName to handle special characters like '/' in UI/UX, AR/VR
     generateQuiz: builder.mutation({
       query: (topicName) => ({
-        url: `${TOPICS_URL}/generate-quiz/${topicName}`,
+        url: `${TOPICS_URL}/generate-quiz/${encodeURIComponent(topicName)}`,
         method: 'POST', // Now matches router.post()
       }),
       // Invalidating tags here is optional depending on if you store quizzes immediately
@@ -36,9 +37,10 @@ export const topicsApiSlice = apiSlice.injectEndpoints({
     }),
 
     // ✅ FIXED: Already correct (POST), ensures body data (score) is sent
+    // ✅ FIXED: URL-encode topicName to handle special characters like '/' in UI/UX, AR/VR
     generateAiPath: builder.mutation({
       query: ({ topicName, score, total }) => ({
-        url: `${TOPICS_URL}/generate-path/${topicName}`,
+        url: `${TOPICS_URL}/generate-path/${encodeURIComponent(topicName)}`,
         method: 'POST', 
         body: { score, total },
       }),

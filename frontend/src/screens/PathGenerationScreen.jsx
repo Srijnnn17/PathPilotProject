@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useGenerateAiPathMutation } from '../slices/topicsApiSlice.js';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
@@ -10,6 +10,7 @@ const PathGenerationScreen = () => {
   // 1. EXACT LOGIC FROM YOUR FILE
   const { topicName } = useParams();
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ FIXED: Added useLocation hook to access location.state
 
   const [generateAiPath, { isLoading }] = useGenerateAiPathMutation();
 
@@ -20,6 +21,7 @@ const PathGenerationScreen = () => {
       const totalQuestions = location.state?.total || 10;
 
       // 2. Send as an OBJECT (The Slice will now handle this correctly)
+      // ✅ FIXED: topicName is already URL-decoded from useParams, pass as-is to mutation (it will encode for API)
       const pathData = await generateAiPath({ 
         topicName, 
         score: currentScore, 
