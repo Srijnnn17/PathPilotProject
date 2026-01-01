@@ -65,12 +65,24 @@ import learningPathRoutes from './routes/learningPathRoutes.js';
 
 
 dotenv.config();
+
+// Validate critical environment variables
+if (!process.env.GEMINI_API_KEY) {
+  console.error('⚠️  WARNING: GEMINI_API_KEY is not set in environment variables');
+  console.error('   Quiz generation and AI features will not work without this key.');
+  console.error('   Please set GEMINI_API_KEY in your .env file.');
+} else {
+  console.log('✅ GEMINI_API_KEY is configured');
+}
+
 connectDB();
 const app = express();
 
-// --- CORS CONFIGURATION (No changes needed here) ---
+// --- CORS CONFIGURATION ---
 const corsOptions = {
-  origin: 'https://path-pilot-rose.vercel.app',
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://path-pilot-rose.vercel.app' 
+    : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
   credentials: true,
 };
 app.use(cors(corsOptions));
